@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoonShop - Product Detail</title>
+    <title>GoonShop - Admin Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css"> </head>
 <body>
@@ -37,15 +37,54 @@
     </header>
 
     <nav class="main-nav">
-        <a href="/home">Home</a>
+        <a href="/">Home</a>
         <a href="/product">Product</a>
         <a href="#">Contact</a>
         <a href="#">Team</a>
     </nav>
 
-    <main class="product-detail-container" id="detail-container">
-        </main>
+    <main class="admin-login-wrapper">
+        <div class="admin-login-box">
+            <h1 class="admin-login-title">Admin Sign in</h1>
+            <p class="admin-login-subtitle">Login for admin</p>
 
+            <form id="admin-login-form">
+                <div class="admin-input-group">
+                    <input type="text" id="admin-username" placeholder="Email or phone number" required>
+                </div>
+
+                <div class="admin-input-group admin-password-group">
+                    <input type="password" id="admin-password" placeholder="Password" required>
+                    <svg class="admin-eye-icon" id="toggle-password" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </div>
+
+                <div class="admin-forgot-link">
+                    <a href="#">Forget password?</a>
+                </div>
+
+                <div class="admin-remember-group">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Remember me</label>
+                </div>
+
+                <button type="submit" class="admin-login-btn">Sign in</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('toggle-password').addEventListener('click', function () {
+            const passwordInput = document.getElementById('admin-password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Subtle opacity change to show it's clicked
+            this.style.opacity = type === 'text' ? '0.5' : '1';
+        });
+    </script>
     <script src="/script.js"></script>
 </body>
 </html>

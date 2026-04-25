@@ -1,17 +1,37 @@
+// ==========================================
+// STARTUP LOGIC (Runs when page loads)
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-    
-    // Check which elements exist on the current page
-    const productGrid = document.getElementById("product-grid");
-    const detailContainer = document.getElementById("detail-container");
 
-    // 1. If we are on the Products Page (productPage.html)
+    // 1. Product Grid Page
+    const productGrid = document.getElementById("product-grid");
     if (productGrid) {
         fetchAllProducts(productGrid);
     }
 
-    // 2. If we are on the Product Detail Page (productDetail.html)
+    // 2. Product Detail Page
+    const detailContainer = document.getElementById("detail-container");
     if (detailContainer) {
         fetchProductDetail(detailContainer);
+    }
+
+    // 3. Expandable Search Bar (Header)
+    const searchBox = document.getElementById("expandable-search-box");
+    const searchInput = document.getElementById("nav-search-input");
+    
+    // SAFE: Only run this if the search bar actually exists on this page!
+    if (searchBox && searchInput) {
+        // Expand when user clicks inside the input
+        searchInput.addEventListener("focus", () => {
+            searchBox.classList.add("active");
+        });
+
+        // Shrink when user clicks outside the box
+        document.addEventListener("click", (event) => {
+            if (!searchBox.contains(event.target)) {
+                searchBox.classList.remove("active");
+            }
+        });
     }
 });
 
@@ -46,7 +66,6 @@ function fetchAllProducts(grid) {
                     imageUrl = product.Images[0].ImageURL;
                 }
 
-                // IMPORTANT UPDATE: The href is now a clean path parameter!
                 card.innerHTML = `
                     <a href="/detail/${product.ProductID}" style="text-decoration: none; color: inherit; width: 100%; display: block;">
                         <div class="image-box">
@@ -71,99 +90,172 @@ function fetchAllProducts(grid) {
 // FUNCTION 2: FETCH SINGLE PRODUCT DETAIL
 // ==========================================
 function fetchProductDetail(container) {
-    
-    // IMPORTANT UPDATE: Read the ID directly from the URL path (e.g., /detail/PD789402)
-    const pathArray = window.location.pathname.split('/');
-    const productId = pathArray[pathArray.length - 1]; // This grabs the very last part of the URL
+    const productId = window.location.pathname.split('/').filter(Boolean).pop();
 
-    // Stop if the ID is missing or if the word is still 'detail'
-    if (!productId || productId === 'detail') {
-        container.innerHTML = "<h2 style='width:100%; text-align:center; margin-top:50px;'>Product ID missing in URL. Please go back.</h2>";
+    if (!productId) {
+        container.innerHTML = "<h2>No Product ID</h2>";
         return;
     }
 
-    container.innerHTML = "<p style='width:100%; text-align:center; font-size:1.5rem; margin-top:50px;'>Loading product details...</p>";
+    container.innerHTML = "<p>Loading product...</p>";
 
-    // Ensure this port matches where your API is running (3000 or 3030)
     fetch(`http://localhost:3030/products/${productId}`)
         .then(res => {
             if (res.status === 404) throw new Error("Not Found");
-            if (!res.ok) throw new Error("HTTP error! status: " + res.status);
+            if (!res.ok) throw new Error("Server error");
             return res.json();
         })
         .then(response => {
-            const product = response.data;
+            const p = response.data;
 
-            if (!product) {
-                container.innerHTML = "<h2 style='width:100%; text-align:center; margin-top:50px;'>Product not found.</h2>";
+            if (!p) {
+                container.innerHTML = "<h2>Product not found</h2>";
                 return;
             }
 
-            // Variables for your specific API columns
-            const brand = product.Brand ? product.Brand : "Unknown";
-            const barcode = product.Barcode ? product.Barcode : "N/A";
-            const mfgDate = product.MFGDate ? product.MFGDate : "N/A";
-            const expDate = product.EXPDate ? product.EXPDate : "N/A";
-            
-            // Image handling
-            let imageUrl = `https://placehold.co/500x500/FFFFFF/DDDDDD?text=${product.ProductName.replace(/ /g, '+')}`;
-            if (product.Images && product.Images.length > 0) {
-                imageUrl = product.Images[0].ImageURL;
+            // Handle image
+            let imageUrl = `https://placehold.co/500x500?text=${encodeURIComponent(p.ProductName)}`;
+            if (p.Images && p.Images.length > 0) {
+                imageUrl = p.Images[0].ImageURL;
             }
 
-            // Inject the detail layout dynamically
+            // Render FULL product detail
             container.innerHTML = `
-                <div class="similar-products">
-                    <h3>Similar products</h3>
-                    <div class="similar-item"><img src="https://placehold.co/150x150/FFFFFF/DDDDDD?text=Jade+Dragon" alt="Similar 1"></div>
-                    <div class="similar-item"><img src="https://placehold.co/150x150/FFFFFF/DDDDDD?text=Shrimp+Siu+Mai" alt="Similar 2"></div>
-                    <div class="similar-item"><img src="https://placehold.co/150x150/FFFFFF/DDDDDD?text=Pork+Dumpling" alt="Similar 3"></div>
-                </div>
-
-                <div class="product-gallery">
-                    <div class="main-image">
-                        <img src="${imageUrl}" alt="${product.ProductName}" style="width: 100%;">
-                    </div>
-                    <div class="thumbnail-row">
-                        <img src="${imageUrl}" alt="Thumbnail 1">
-                        <img src="https://placehold.co/100x100/FFFFFF/DDDDDD?text=Thumb+2" alt="Thumbnail 2">
-                    </div>
-                </div>
-
-                <div class="product-info">
-                    <h1>${product.ProductName}</h1>
-                    <div class="brand-name">brand: ${brand}</div>
+                <div style="display:flex; gap:40px; padding:40px;">
                     
-                    <div class="price">${product.Price} Baht</div>
-                    
-                    <div class="quantity-label">Quantity</div>
-                    <div class="qty-controls">
-                        <button class="qty-btn">-</button>
-                        <input type="text" class="qty-input" value="1">
-                        <button class="qty-btn">+</button>
+                    <div>
+                        <img src="${imageUrl}" 
+                             alt="${p.ProductName}" 
+                             style="width:400px; border:1px solid #ccc; border-radius:10px;">
                     </div>
 
-                    <button class="add-to-cart">+ Add to cart</button>
+                    <div>
+                        <h1>${p.ProductName}</h1>
 
-                    <div class="description-box">
-                        <h3>Product Details</h3>
-                        <p class="desc-content">
-                            - <strong>Name:</strong> ${product.ProductName}<br>
-                            - <strong>Brand:</strong> ${brand}<br>
-                            - <strong>Barcode:</strong> ${barcode}<br>
-                            - <strong>MFG Date:</strong> ${mfgDate}<br>
-                            - <strong>EXP Date:</strong> ${expDate}
+                        <p style="font-size:20px; font-weight:bold;">
+                            ${p.Price} Baht
                         </p>
+
+                        <p><b>Brand:</b> ${p.Brand}</p>
+                        <p><b>Barcode:</b> ${p.Barcode}</p>
+                        <p><b>MFG Date:</b> ${p.MFGDate}</p>
+                        <p><b>EXP Date:</b> ${p.EXPDate}</p>
+                        <p><b>Admin ID:</b> ${p.AdminID}</p>
+
+                        <hr style="margin:20px 0;">
+
+                        <div>
+                            <b>Quantity:</b>
+                            <button id="minus">-</button>
+                            <input id="qty" type="text" value="1" style="width:40px; text-align:center;">
+                            <button id="plus">+</button>
+                        </div>
+
+                        <br>
+
+                        <button style="
+                            padding:10px 20px;
+                            background:black;
+                            color:white;
+                            border:none;
+                            cursor:pointer;
+                        ">
+                            Add to Cart
+                        </button>
                     </div>
                 </div>
             `;
+
+            // Quantity logic
+            const qtyInput = document.getElementById("qty");
+            document.getElementById("plus").onclick = () => {
+                qtyInput.value = parseInt(qtyInput.value) + 1;
+            };
+            document.getElementById("minus").onclick = () => {
+                if (parseInt(qtyInput.value) > 1) {
+                    qtyInput.value = parseInt(qtyInput.value) - 1;
+                }
+            };
         })
-        .catch(error => {
-            console.error("Error fetching product details:", error);
-            if (error.message === "Not Found") {
-                container.innerHTML = "<h2 style='width:100%; text-align:center; margin-top:50px;'>Product not found in database.</h2>";
+        .catch(err => {
+            console.error(err);
+
+            if (err.message === "Not Found") {
+                container.innerHTML = "<h2>Product not found</h2>";
             } else {
-                container.innerHTML = "<h2 style='width:100%; text-align:center; color:red; margin-top:50px;'>Error loading product. Is backend running?</h2>";
+                container.innerHTML = "<h2 style='color:red;'>Error loading product</h2>";
             }
         });
 }
+
+// ==========================================
+// FUNCTION 3: ADMIN LOGIN (SAFE)
+// ==========================================
+const adminForm = document.getElementById("admin-login-form");
+
+if (adminForm) {
+    adminForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById("admin-username").value.trim();
+        const password = document.getElementById("admin-password").value.trim();
+
+        try {
+            const res = await fetch("http://localhost:3030/admin/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    Username: username,
+                    myPassword: password
+                })
+            });
+
+            const data = await res.json();
+
+            // ❌ LOGIN FAIL
+            if (!res.ok) {
+                alert(data.message || "Login failed");
+                return;
+            }
+
+            // ✅ LOGIN SUCCESS
+            alert("Login success!");
+
+            // store admin
+            localStorage.setItem("adminID", data.AdminID);
+
+            // 🚀 redirect
+            window.location.href = "/management";
+
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Cannot connect to server");
+        }
+    });
+}
+
+// ==============================
+// SEARCH EXPAND / COLLAPSE
+// ==============================
+document.addEventListener("DOMContentLoaded", () => {
+    const searchBox = document.querySelector(".search-container");
+    const overlay = document.getElementById("search-overlay");
+
+    console.log("searchBox:", searchBox);
+    console.log("overlay:", overlay);
+
+    if (searchBox && overlay) {
+        searchBox.addEventListener("click", () => {
+            console.log("CLICKED");
+            overlay.classList.remove("hidden");
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!searchBox.contains(e.target) && !overlay.contains(e.target)) {
+                overlay.classList.add("hidden");
+            }
+        });
+    }
+});

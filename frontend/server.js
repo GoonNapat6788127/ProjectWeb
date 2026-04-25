@@ -24,6 +24,13 @@ app.get('/product', (req, res) => {
     res.sendFile(path.join(__dirname, 'html', 'productPage.html'));
 });
 
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'html', 'adminLogin.html'));
+});
+
+app.get('/management', (req, res) => {
+    res.sendFile(path.join(__dirname, 'html', 'managementPage.html'));
+});
 // 3. Route for the Product Page
 
 // 4. Start the server

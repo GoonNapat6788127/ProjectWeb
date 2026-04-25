@@ -922,6 +922,7 @@ router.post('/admins', (req, res) => {
 
 // ADMIN LOGIN
 router.post('/admin/login', (req, res) => {
+    console.log("LOGIN HIT", req.body);
     if (!req.body) {
         return res.status(400).send({
             error: true,
