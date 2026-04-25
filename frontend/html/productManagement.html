@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoonShop - Product Management</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="logo">GoonShop</div>
+        </header>
+
+    <nav class="main-nav">
+        <a href="/home">Home</a>
+        <a href="/product" class="active">Product</a>
+        <a href="#">Contact</a>
+        <a href="/Team">Team</a>
+    </nav>
+
+    <main class="admin-main">
+        <div class="admin-container">
+            
+            <div class="action-buttons">
+                    <a href="/add-product" style="text-decoration: none;">
+                        <button class="btn-outline">Add</button>
+                    </a>
+                    <a href="/edit-product" style="text-decoration: none;">
+                        <button class="btn-outline">Edit</button>
+                    </a>
+                <button class="btn-outline">Delete</button>
+            </div>
+
+            <h3 class="list-title">List of Product</h3>
+
+            <div class="product-table-wrapper">
+    
+    <div class="table-header">
+        <span>Product ID</span>
+        <span>Product name</span>
+        <span>Price</span>
+        <span>Brand</span>
+    </div>
+
+    <div class="table-body">
+        
+        <div class="table-row">
+            <span>10048143</span>
+            <span class="p-name">Dragon jade shrimp dumpling</span>
+            <span>135</span>
+            <span class="brand-text">Jade Dragon</span>
+        </div>
+
+        <div class="table-row">
+            <span>11046543</span>
+            <span class="p-name">Dragon Jade Frozen Cream Custard</span>
+            <span>255</span>
+            <span class="brand-text">Jade Dragon</span>
+        </div>
+
+        <div class="table-row empty"></div>
+        <div class="table-row empty"></div>
+        <div class="table-row empty"></div>
+
+    </div>
+</div>
+    </main>
+
+</body>
+</html>
