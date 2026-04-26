@@ -12,14 +12,14 @@ const multer = require('multer');
 dotenv.config();
 
 // 2. Configure Cloudinary using your .env keys
-cloudinary.config({ 
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-    api_key: process.env.CLOUDINARY_API_KEY, 
-    api_secret: process.env.CLOUDINARY_API_SECRET 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // 3. Change Multer to temporary storage instead of local disk storage
-const upload = multer({ dest: 'uploads/' }); 
+const upload = multer({ dest: 'uploads/' });
 
 app.use(cors());
 app.use(express.json());
@@ -157,7 +157,9 @@ router.post('/customers', (req, res) => {
 // PUT    /products/:id
 // DELETE /products/:id
 
+// ==============================
 // GET ALL PRODUCTS
+// ==============================
 router.get('/products', (req, res) => {
     const sql = `
         SELECT 
@@ -165,7 +167,6 @@ router.get('/products', (req, res) => {
             p.ProductName,
             p.Price,
             p.Brand,
-            p.Barcode,
             p.MFGDate,
             p.EXPDate,
             p.AdminID,
@@ -177,13 +178,9 @@ router.get('/products', (req, res) => {
 
     db.query(sql, (error, results) => {
         if (error) {
-            return res.status(500).send({
-                error: true,
-                message: error.message
-            });
+            return res.status(500).send({ error: true, message: error.message });
         }
 
-        // Group data
         const products = {};
 
         results.forEach(row => {
@@ -193,7 +190,6 @@ router.get('/products', (req, res) => {
                     ProductName: row.ProductName,
                     Price: row.Price,
                     Brand: row.Brand,
-                    Barcode: row.Barcode,
                     MFGDate: row.MFGDate,
                     EXPDate: row.EXPDate,
                     AdminID: row.AdminID,
@@ -201,7 +197,6 @@ router.get('/products', (req, res) => {
                 };
             }
 
-            // push image if exists
             if (row.ImageID) {
                 products[row.ProductID].Images.push({
                     ImageID: row.ImageID,
@@ -210,32 +205,26 @@ router.get('/products', (req, res) => {
             }
         });
 
-        return res.send({
+        res.send({
             error: false,
-            data: Object.values(products),
-            message: 'Product list with images (grouped)'
+            data: Object.values(products)
         });
     });
 });
 
-// SEARCH PRODUCT
+
+// ==============================
+// SEARCH PRODUCTS (Flexible)
+// ==============================
 router.get('/products/search', (req, res) => {
     const { minPrice, maxPrice, brand, ingredient } = req.query;
 
-    if (!minPrice || !maxPrice || !brand || !ingredient) {
-        return res.status(400).send({
-            error: true,
-            message: 'Please provide minPrice, maxPrice, brand, ingredient'
-        });
-    }
-
-    const sql = `
+    let sql = `
         SELECT 
             p.ProductID,
             p.ProductName,
             p.Price,
             p.Brand,
-            p.Barcode,
             p.MFGDate,
             p.EXPDate,
             p.AdminID,
@@ -244,29 +233,31 @@ router.get('/products/search', (req, res) => {
         FROM Product p
         LEFT JOIN ItemIngredients ing ON p.ProductID = ing.ProductID
         LEFT JOIN Image i ON p.ProductID = i.ProductID
-        WHERE p.Price BETWEEN ? AND ?
-          AND p.Brand = ?
-          AND ing.Ingredients LIKE ?
+        WHERE 1=1
     `;
 
-    const params = [minPrice, maxPrice, brand, `%${ingredient}%`];
+    const params = [];
+
+    if (minPrice && maxPrice) {
+        sql += ` AND p.Price BETWEEN ? AND ?`;
+        params.push(minPrice, maxPrice);
+    }
+
+    if (brand) {
+        sql += ` AND LOWER(p.Brand) = LOWER(?)`;
+        params.push(brand);
+    }
+
+    if (ingredient) {
+        sql += ` AND ing.Ingredients LIKE ?`;
+        params.push(`%${ingredient}%`);
+    }
 
     db.query(sql, params, (error, results) => {
         if (error) {
-            return res.status(500).send({
-                error: true,
-                message: error.message
-            });
+            return res.status(500).send({ error: true, message: error.message });
         }
 
-        if (results.length === 0) {
-            return res.status(404).send({
-                error: true,
-                message: 'Product not found'
-            });
-        }
-
-        // GROUP DATA (same as before)
         const products = {};
 
         results.forEach(row => {
@@ -276,7 +267,6 @@ router.get('/products/search', (req, res) => {
                     ProductName: row.ProductName,
                     Price: row.Price,
                     Brand: row.Brand,
-                    Barcode: row.Barcode,
                     MFGDate: row.MFGDate,
                     EXPDate: row.EXPDate,
                     AdminID: row.AdminID,
@@ -292,20 +282,31 @@ router.get('/products/search', (req, res) => {
             }
         });
 
-        return res.send({
+        res.send({
             error: false,
-            data: Object.values(products),
-            message: 'Filtered products with images'
+            data: Object.values(products)
         });
     });
 });
 
+
+// ==============================
 // GET PRODUCT BY ID
+// ==============================
 router.get('/products/:id', (req, res) => {
     const product_id = req.params.id;
 
     const sql = `
-        SELECT p.*, i.ImageID, i.ImageURL
+        SELECT 
+            p.ProductID,
+            p.ProductName,
+            p.Price,
+            p.Brand,
+            p.MFGDate,
+            p.EXPDate,
+            p.AdminID,
+            i.ImageID,
+            i.ImageURL
         FROM Product p
         LEFT JOIN Image i ON p.ProductID = i.ProductID
         WHERE p.ProductID = ?
@@ -313,10 +314,7 @@ router.get('/products/:id', (req, res) => {
 
     db.query(sql, [product_id], (error, results) => {
         if (error) {
-            return res.status(500).send({
-                error: true,
-                message: error.message
-            });
+            return res.status(500).send({ error: true, message: error.message });
         }
 
         if (results.length === 0) {
@@ -331,7 +329,6 @@ router.get('/products/:id', (req, res) => {
             ProductName: results[0].ProductName,
             Price: results[0].Price,
             Brand: results[0].Brand,
-            Barcode: results[0].Barcode,
             MFGDate: results[0].MFGDate,
             EXPDate: results[0].EXPDate,
             AdminID: results[0].AdminID,
@@ -347,29 +344,29 @@ router.get('/products/:id', (req, res) => {
             }
         });
 
-        return res.send({
+        res.send({
             error: false,
-            data: product,
-            message: 'Product with images'
+            data: product
         });
     });
 });
 
-// Add PRODUCT
-// Add PRODUCT
+
+// ==============================
+// ADD PRODUCT (WITH IMAGE)
+// ==============================
 router.post('/products', upload.single('image'), async (req, res) => {
     const {
         ProductID,
         ProductName,
         Price,
         Brand,
-        Barcode,
         MFGDate,
         EXPDate,
         AdminID
     } = req.body;
 
-    if (!ProductID || !ProductName || !Price || !Brand || !Barcode || !MFGDate || !EXPDate || !AdminID) {
+    if (!ProductID || !ProductName || !Price || !Brand || !MFGDate || !EXPDate || !AdminID) {
         return res.status(400).send({
             error: true,
             message: 'Missing product fields'
@@ -378,34 +375,32 @@ router.post('/products', upload.single('image'), async (req, res) => {
 
     let imageUrl = null;
 
-    // 1. Upload to Cloudinary if an image file was sent in the request
+    // Upload image (optional)
     if (req.file) {
         try {
             const result = await cloudinary.uploader.upload(req.file.path);
-            imageUrl = result.secure_url; // Get the Cloudinary URL
-        } catch (uploadError) {
+            imageUrl = result.secure_url;
+        } catch (err) {
             return res.status(500).send({
                 error: true,
-                message: 'Failed to upload image to Cloudinary: ' + uploadError.message
+                message: 'Image upload failed: ' + err.message
             });
         }
     }
 
-    // 2. Insert Product into the database first
     const productSQL = `
         INSERT INTO Product 
-        (ProductID, ProductName, Price, Brand, Barcode, MFGDate, EXPDate, AdminID)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (ProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query(productSQL,
-        [ProductID, ProductName, Price, Brand, Barcode, MFGDate, EXPDate, AdminID],
+        [ProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID],
         (error) => {
             if (error) {
                 return res.status(500).send({ error: true, message: error.message });
             }
 
-            // If no image was uploaded, we are done
             if (!imageUrl) {
                 return res.send({
                     error: false,
@@ -413,11 +408,12 @@ router.post('/products', upload.single('image'), async (req, res) => {
                 });
             }
 
-            // 3. Generate ImageID
+            // Generate ImageID
             const getLastIdSQL = `
                 SELECT MAX(CAST(SUBSTRING(ImageID, 3) AS UNSIGNED)) AS lastId
                 FROM Image
             `;
+
             db.query(getLastIdSQL, (err, result) => {
                 if (err) {
                     return res.status(500).send({ error: true, message: err.message });
@@ -425,11 +421,9 @@ router.post('/products', upload.single('image'), async (req, res) => {
 
                 let next = (result[0].lastId || 789400) + 1;
                 const newImageID = 'IM' + next;
-                
-                // Format date for MySQL DATETIME
-                const uploadDate = new Date().toISOString().slice(0, 19).replace('T', ' '); 
 
-                // 4. Insert Image with Cloudinary URL
+                const uploadDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
                 const imageSQL = `
                     INSERT INTO Image 
                     (ImageID, myDescription, UploadDate, ImageURL, ProductID)
@@ -440,15 +434,12 @@ router.post('/products', upload.single('image'), async (req, res) => {
                     [newImageID, 'Product image', uploadDate, imageUrl, ProductID],
                     (err2) => {
                         if (err2) {
-                            return res.status(500).send({
-                                error: true,
-                                message: err2.message
-                            });
+                            return res.status(500).send({ error: true, message: err2.message });
                         }
 
-                        return res.send({
+                        res.send({
                             error: false,
-                            message: 'Product + Image uploaded to Cloud successfully',
+                            message: 'Product + Image created',
                             ProductID,
                             ImageURL: imageUrl
                         });
@@ -459,60 +450,67 @@ router.post('/products', upload.single('image'), async (req, res) => {
     );
 });
 
-// UPDATE PRODUCT
-router.put('/products/:id', (req, res) => {
-    if (!req.body) {
-        return res.status(400).send({
-            error: true,
-            message: 'Request body is missing (send JSON)'
-        });
-    }
 
-    let product_id = req.params.id;
+// ==============================
+// UPDATE PRODUCT
+// ==============================
+router.put('/products/:id', (req, res) => {
+    const product_id = req.params.id;
 
     const {
         ProductName,
         Price,
         Brand,
-        Barcode,
         MFGDate,
         EXPDate,
         AdminID
     } = req.body;
 
-    db.query(`UPDATE Product
-        SET ProductName=?, Price=?, Brand=?, Barcode=?, MFGDate=?, EXPDate=?, AdminID=? WHERE ProductID=?`,
-        [ProductName, Price, Brand, Barcode, MFGDate, EXPDate, AdminID, product_id], (error) => {
-            if (error) {
-                return res.status(500).send({
-                    error: true,
-                    message: error.message
-                });
-            }
-
-            return res.send({
-                error: false,
-                message: 'Product updated successfully'
-            });
+    db.query(`
+        UPDATE Product
+        SET ProductName=?, Price=?, Brand=?, MFGDate=?, EXPDate=?, AdminID=?
+        WHERE ProductID=?
+    `,
+    [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, product_id],
+    (error) => {
+        if (error) {
+            return res.status(500).send({ error: true, message: error.message });
         }
-    );
+
+        res.send({
+            error: false,
+            message: 'Product updated successfully'
+        });
+    });
 });
 
+
+// ==============================
 // DELETE PRODUCT
+// ==============================
 router.delete('/products/:id', (req, res) => {
-    let product_id = req.params.id;
+    const product_id = req.params.id;
 
-    db.query("DELETE FROM Product WHERE ProductID = ?", [product_id], (error) => {
-        if (error) {
-            return res.status(500).send({
-                error: true,
-                message: error.message
+    db.query("DELETE FROM Image WHERE ProductID = ?", [product_id], (err) => {
+        if (err) return res.status(500).send({ error: true, message: err.message });
+
+        db.query("DELETE FROM ItemIngredients WHERE ProductID = ?", [product_id], (err2) => {
+            if (err2) return res.status(500).send({ error: true, message: err2.message });
+
+            db.query("DELETE FROM myOrder WHERE ProductID = ?", [product_id], (err3) => {
+                if (err3) return res.status(500).send({ error: true, message: err3.message });
+
+                db.query("DELETE FROM Product WHERE ProductID = ?", [product_id], (error) => {
+                    if (error) {
+                        return res.status(500).send({ error: true, message: error.message });
+                    }
+
+                    res.send({
+                        error: false,
+                        message: 'Product deleted successfully'
+                    });
+                });
             });
-        }
-
-        return res.send({
-            error: false,
-            message: 'Product deleted successfully'
         });
     });
 });
@@ -994,7 +992,7 @@ router.post('/admin/login', (req, res) => {
                         });
                     }
                 );
-            } 
+            }
             // FAILED LOGIN
             else {
                 db.query(
@@ -1002,7 +1000,7 @@ router.post('/admin/login', (req, res) => {
                     (LoginID, Username, myPassword, LoginLog, myRole, AdminID)
                     VALUES (?, ?, ?, ?, ?, ?)`,
                     [LoginID, Username, myPassword, LoginLog, null, null],
-                    () => {}
+                    () => { }
 
                 );
 

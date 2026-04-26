@@ -32,9 +32,6 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'html', 'adminLogin.html'));
 });
 
-app.get('/management', (req, res) => {
-    res.sendFile(path.join(__dirname, 'html', 'managementPage.html'));
-});
 // Route สำหรับหน้า Add Product
 app.get('/add-product', (req, res) => {
     res.sendFile(path.join(__dirname, 'html', 'addProduct.html'));

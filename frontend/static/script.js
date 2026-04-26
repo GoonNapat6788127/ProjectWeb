@@ -86,11 +86,10 @@ function fetchAllProducts(grid) {
 }
 
 
-// ==========================================
-// FUNCTION 2: FETCH SINGLE PRODUCT DETAIL
-// ==========================================
 function fetchProductDetail(container) {
-    const productId = window.location.pathname.split('/').filter(Boolean).pop();
+    // safer product ID extraction
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const productId = parts[parts.length - 1];
 
     if (!productId) {
         container.innerHTML = "<h2>No Product ID</h2>";
@@ -113,13 +112,18 @@ function fetchProductDetail(container) {
                 return;
             }
 
-            // Handle image
+            // format date nicely
+            const formatDate = (date) => {
+                if (!date) return "-";
+                return new Date(date).toLocaleDateString();
+            };
+
+            // image fallback
             let imageUrl = `https://placehold.co/500x500?text=${encodeURIComponent(p.ProductName)}`;
             if (p.Images && p.Images.length > 0) {
                 imageUrl = p.Images[0].ImageURL;
             }
 
-            // Render FULL product detail
             container.innerHTML = `
                 <div style="display:flex; gap:40px; padding:40px;">
                     
@@ -137,9 +141,8 @@ function fetchProductDetail(container) {
                         </p>
 
                         <p><b>Brand:</b> ${p.Brand}</p>
-                        <p><b>Barcode:</b> ${p.Barcode}</p>
-                        <p><b>MFG Date:</b> ${p.MFGDate}</p>
-                        <p><b>EXP Date:</b> ${p.EXPDate}</p>
+                        <p><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
+                        <p><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
                         <p><b>Admin ID:</b> ${p.AdminID}</p>
 
                         <hr style="margin:20px 0;">
@@ -147,7 +150,7 @@ function fetchProductDetail(container) {
                         <div>
                             <b>Quantity:</b>
                             <button id="minus">-</button>
-                            <input id="qty" type="text" value="1" style="width:40px; text-align:center;">
+                            <input id="qty" type="number" value="1" min="1" style="width:50px; text-align:center;">
                             <button id="plus">+</button>
                         </div>
 
@@ -166,14 +169,17 @@ function fetchProductDetail(container) {
                 </div>
             `;
 
-            // Quantity logic
+            // quantity logic (safe)
             const qtyInput = document.getElementById("qty");
+
             document.getElementById("plus").onclick = () => {
-                qtyInput.value = parseInt(qtyInput.value) + 1;
+                qtyInput.value = Number(qtyInput.value || 1) + 1;
             };
+
             document.getElementById("minus").onclick = () => {
-                if (parseInt(qtyInput.value) > 1) {
-                    qtyInput.value = parseInt(qtyInput.value) - 1;
+                const current = Number(qtyInput.value || 1);
+                if (current > 1) {
+                    qtyInput.value = current - 1;
                 }
             };
         })
@@ -227,7 +233,7 @@ if (adminForm) {
             localStorage.setItem("adminID", data.AdminID);
 
             // 🚀 redirect
-            window.location.href = "/management";
+            window.location.href = "/product-management";
 
         } catch (error) {
             console.error("Login error:", error);
