@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = 5000;
 
 // 1. Serve static files (like style.css) from the 'public' folder
 app.use(express.static(path.join(__dirname, 'static')));
