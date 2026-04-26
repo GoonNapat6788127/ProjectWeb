@@ -38,7 +38,7 @@ app.get('/add-product', (req, res) => {
 });
 
 // Route สำหรับหน้า Edit Product
-app.get('/edit-product', (req, res) => {
+app.get('/edit-product/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'html', 'editProduct.html'));
 });
 

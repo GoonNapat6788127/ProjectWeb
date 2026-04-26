@@ -298,18 +298,20 @@ router.get('/products/:id', (req, res) => {
 
     const sql = `
         SELECT 
-            p.ProductID,
-            p.ProductName,
-            p.Price,
-            p.Brand,
-            p.MFGDate,
-            p.EXPDate,
-            p.AdminID,
-            i.ImageID,
-            i.ImageURL
-        FROM Product p
-        LEFT JOIN Image i ON p.ProductID = i.ProductID
-        WHERE p.ProductID = ?
+    p.ProductID,
+    p.ProductName,
+    p.Price,
+    p.Brand,
+    p.MFGDate,
+    p.EXPDate,
+    p.AdminID,
+    i.ImageID,
+    i.ImageURL,
+    ing.Ingredients
+FROM Product p
+LEFT JOIN Image i ON p.ProductID = i.ProductID
+LEFT JOIN ItemIngredients ing ON p.ProductID = ing.ProductID
+WHERE p.ProductID = ?
     `;
 
     db.query(sql, [product_id], (error, results) => {
@@ -332,7 +334,8 @@ router.get('/products/:id', (req, res) => {
             MFGDate: results[0].MFGDate,
             EXPDate: results[0].EXPDate,
             AdminID: results[0].AdminID,
-            Images: []
+            Images: [],
+            Ingredients: []
         };
 
         results.forEach(row => {
@@ -341,6 +344,10 @@ router.get('/products/:id', (req, res) => {
                     ImageID: row.ImageID,
                     ImageURL: row.ImageURL
                 });
+            }
+
+            if (row.Ingredients) {
+                product.Ingredients.push(row.Ingredients);
             }
         });
 
@@ -357,105 +364,161 @@ router.get('/products/:id', (req, res) => {
 // ==============================
 router.post('/products', upload.single('image'), async (req, res) => {
     const {
-        ProductID,
         ProductName,
         Price,
         Brand,
         MFGDate,
         EXPDate,
-        AdminID
+        AdminID,
+        Ingredients // ✅ GET THIS
     } = req.body;
 
-    if (!ProductID || !ProductName || !Price || !Brand || !MFGDate || !EXPDate || !AdminID) {
+    if (!ProductName || !Price || !Brand || !MFGDate || !EXPDate || !AdminID) {
         return res.status(400).send({
             error: true,
             message: 'Missing product fields'
         });
     }
 
-    let imageUrl = null;
+    // ✅ convert Ingredients string → array
+    const ingredientsArray = Ingredients
+        ? Ingredients.split(',').map(i => i.trim()).filter(i => i)
+        : [];
 
-    // Upload image (optional)
-    if (req.file) {
-        try {
-            const result = await cloudinary.uploader.upload(req.file.path);
-            imageUrl = result.secure_url;
-        } catch (err) {
-            return res.status(500).send({
-                error: true,
-                message: 'Image upload failed: ' + err.message
-            });
-        }
-    }
-
-    const productSQL = `
-        INSERT INTO Product 
-        (ProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+    // ==============================
+    // GENERATE ProductID
+    // ==============================
+    const getLastIdSQL = `
+        SELECT MAX(CAST(SUBSTRING(ProductID, 3) AS UNSIGNED)) AS lastId
+        FROM Product
     `;
 
-    db.query(productSQL,
-        [ProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID],
-        (error) => {
-            if (error) {
-                return res.status(500).send({ error: true, message: error.message });
-            }
+    db.query(getLastIdSQL, async (err, result) => {
+        if (err) {
+            return res.status(500).send({ error: true, message: err.message });
+        }
 
-            if (!imageUrl) {
-                return res.send({
-                    error: false,
-                    message: 'Product created (no image)'
+        let next = (result[0].lastId || 789400) + 1;
+        const newProductID = 'PD' + next;
+
+        let imageUrl = null;
+
+        // ==============================
+        // UPLOAD IMAGE
+        // ==============================
+        if (req.file) {
+            try {
+                const uploadResult = await cloudinary.uploader.upload(req.file.path);
+                imageUrl = uploadResult.secure_url;
+            } catch (err) {
+                return res.status(500).send({
+                    error: true,
+                    message: 'Image upload failed: ' + err.message
                 });
             }
+        }
 
-            // Generate ImageID
-            const getLastIdSQL = `
-                SELECT MAX(CAST(SUBSTRING(ImageID, 3) AS UNSIGNED)) AS lastId
-                FROM Image
-            `;
+        // ==============================
+        // INSERT PRODUCT
+        // ==============================
+        const productSQL = `
+            INSERT INTO Product 
+            (ProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
 
-            db.query(getLastIdSQL, (err, result) => {
-                if (err) {
-                    return res.status(500).send({ error: true, message: err.message });
+        db.query(productSQL,
+            [newProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID],
+            (error) => {
+                if (error) {
+                    return res.status(500).send({ error: true, message: error.message });
                 }
 
-                let next = (result[0].lastId || 789400) + 1;
-                const newImageID = 'IM' + next;
+                // ==============================
+                // ✅ INSERT INGREDIENTS
+                // ==============================
+                if (ingredientsArray.length > 0) {
+                    const values = ingredientsArray.map(i => [i, newProductID]);
 
-                const uploadDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                    const ingredientSQL = `
+                        INSERT INTO ItemIngredients (Ingredients, ProductID)
+                        VALUES ?
+                    `;
 
-                const imageSQL = `
-                    INSERT INTO Image 
-                    (ImageID, myDescription, UploadDate, ImageURL, ProductID)
-                    VALUES (?, ?, ?, ?, ?)
+                    db.query(ingredientSQL, [values], (errIng) => {
+                        if (errIng) {
+                            return res.status(500).send({
+                                error: true,
+                                message: errIng.message
+                            });
+                        }
+                    });
+                }
+
+                // ==============================
+                // NO IMAGE → DONE
+                // ==============================
+                if (!imageUrl) {
+                    return res.send({
+                        error: false,
+                        message: 'Product created',
+                        ProductID: newProductID
+                    });
+                }
+
+                // ==============================
+                // INSERT IMAGE
+                // ==============================
+                const getLastImageSQL = `
+                    SELECT MAX(CAST(SUBSTRING(ImageID, 3) AS UNSIGNED)) AS lastId
+                    FROM Image
                 `;
 
-                db.query(imageSQL,
-                    [newImageID, 'Product image', uploadDate, imageUrl, ProductID],
-                    (err2) => {
-                        if (err2) {
-                            return res.status(500).send({ error: true, message: err2.message });
-                        }
-
-                        res.send({
-                            error: false,
-                            message: 'Product + Image created',
-                            ProductID,
-                            ImageURL: imageUrl
-                        });
+                db.query(getLastImageSQL, (err2, result2) => {
+                    if (err2) {
+                        return res.status(500).send({ error: true, message: err2.message });
                     }
-                );
-            });
-        }
-    );
+
+                    let nextImg = (result2[0].lastId || 789400) + 1;
+                    const newImageID = 'IM' + nextImg;
+
+                    const uploadDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                    const imageSQL = `
+                        INSERT INTO Image 
+                        (ImageID, myDescription, UploadDate, ImageURL, ProductID)
+                        VALUES (?, ?, ?, ?, ?)
+                    `;
+
+                    db.query(imageSQL,
+                        [newImageID, 'Product image', uploadDate, imageUrl, newProductID],
+                        (err3) => {
+                            if (err3) {
+                                return res.status(500).send({ error: true, message: err3.message });
+                            }
+
+                            res.send({
+                                error: false,
+                                message: 'Product + Image + Ingredients created',
+                                ProductID: newProductID,
+                                ImageURL: imageUrl
+                            });
+                        }
+                    );
+                });
+            }
+        );
+    });
 });
 
 
 // ==============================
 // UPDATE PRODUCT
 // ==============================
-router.put('/products/:id', (req, res) => {
+router.put('/products/:id', upload.single('image'), (req, res) => {
     const product_id = req.params.id;
+
+    const body = req.body || {};
 
     const {
         ProductName,
@@ -463,27 +526,60 @@ router.put('/products/:id', (req, res) => {
         Brand,
         MFGDate,
         EXPDate,
-        AdminID
-    } = req.body;
+        AdminID,
+        Ingredients
+    } = body;
 
+    // ================= INGREDIENTS =================
+    if (Ingredients) {
+        const ingredientsArray = Ingredients
+            .split(',')
+            .map(i => i.trim())
+            .filter(i => i);
+
+        db.query("DELETE FROM ItemIngredients WHERE ProductID = ?", [product_id], () => {
+            if (ingredientsArray.length > 0) {
+                const values = ingredientsArray.map(i => [i, product_id]);
+
+                db.query(
+                    "INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?",
+                    [values]
+                );
+            }
+        });
+    }
+
+    // ================= UPDATE PRODUCT =================
     db.query(`
         UPDATE Product
         SET ProductName=?, Price=?, Brand=?, MFGDate=?, EXPDate=?, AdminID=?
         WHERE ProductID=?
     `,
-    [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, product_id],
-    (error) => {
-        if (error) {
-            return res.status(500).send({ error: true, message: error.message });
+        [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, product_id],
+        (error) => {
+            if (error) {
+                return res.status(500).send({ error: true, message: error.message });
+            }
+
+            // ================= IMAGE UPDATE (optional) =================
+            if (req.file) {
+                cloudinary.uploader.upload(req.file.path, (err, result) => {
+                    if (!err) {
+                        db.query(
+                            "INSERT INTO Image (ImageURL, ProductID) VALUES (?, ?)",
+                            [result.secure_url, product_id]
+                        );
+                    }
+                });
+            }
+
+            res.send({
+                error: false,
+                message: 'Product updated successfully'
+            });
         }
-
-        res.send({
-            error: false,
-            message: 'Product updated successfully'
-        });
-    });
+    );
 });
-
 
 // ==============================
 // DELETE PRODUCT

@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Expandable Search Bar (Header)
     const searchBox = document.getElementById("expandable-search-box");
     const searchInput = document.getElementById("nav-search-input");
-    
+
     // SAFE: Only run this if the search bar actually exists on this page!
     if (searchBox && searchInput) {
         // Expand when user clicks inside the input
@@ -143,7 +143,6 @@ function fetchProductDetail(container) {
                         <p><b>Brand:</b> ${p.Brand}</p>
                         <p><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
                         <p><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
-                        <p><b>Admin ID:</b> ${p.AdminID}</p>
 
                         <hr style="margin:20px 0;">
 
@@ -200,7 +199,7 @@ function fetchProductDetail(container) {
 const adminForm = document.getElementById("admin-login-form");
 
 if (adminForm) {
-    adminForm.addEventListener("submit", async function(e) {
+    adminForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const username = document.getElementById("admin-username").value.trim();
@@ -264,4 +263,337 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Detect page by element
+    const table = document.getElementById("productTable");
+    const form = document.getElementById("editForm");
+
+    // ==========================
+    // PRODUCT LIST PAGE
+    // ==========================
+    if (table) {
+        fetchProducts();
+        return;
+    }
+
+    // ==========================
+    // EDIT PRODUCT PAGE
+    // ==========================
+    if (form) {
+        const productId = getProductIdFromURL();
+
+        if (!productId) {
+            console.log("No product ID (not edit page)");
+            return;
+        }
+
+        fetchProduct(productId);
+        setupUpdate(productId);
+    }
+});
+
+
+// ==========================
+// FETCH ALL PRODUCTS
+// ==========================
+function fetchProducts() {
+    const table = document.getElementById("productTable");
+
+    fetch("http://localhost:3030/products")
+        .then(res => res.json())
+        .then(response => {
+            const products = response.data;
+
+            table.innerHTML = "";
+
+            products.forEach(p => {
+                const row = document.createElement("div");
+                row.className = "table-row";
+
+                row.innerHTML = `
+                    <span>${p.ProductID}</span>
+                    <span class="p-name">${p.ProductName}</span>
+                    <span>${Number(p.Price).toLocaleString()}</span>
+                    <span class="brand-text">${p.Brand}</span>
+                `;
+
+                row.style.cursor = "pointer";
+                row.onclick = () => {
+                    window.location.href = `/edit-product/${p.ProductID}`;
+                };
+
+                table.appendChild(row);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            table.innerHTML = "<p style='color:red;'>Error loading products</p>";
+        });
+}
+
+
+// ==========================
+// GET PRODUCT ID FROM URL
+// ==========================
+function getProductIdFromURL() {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+
+    // IMPORTANT: ensure it's edit page
+    if (!window.location.pathname.includes("edit-product")) {
+        return null;
+    }
+
+    return parts[parts.length - 1];
+}
+
+
+// ==========================
+// FETCH SINGLE PRODUCT
+// ==========================
+function fetchProduct(id) {
+    fetch(`http://localhost:3030/products/${id}`)
+        .then(res => {
+            if (res.status === 404) throw new Error("Not Found");
+            return res.json();
+        })
+        .then(res => {
+            const p = res.data;
+
+            document.getElementById("productId").value = p.ProductID;
+            document.getElementById("productName").value = p.ProductName;
+            document.getElementById("price").value = p.Price;
+            document.getElementById("brand").value = p.Brand;
+
+            document.getElementById("ingredients").value =
+                p.Ingredients ? p.Ingredients.join(", ") : "";
+
+            if (p.Images && p.Images.length > 0) {
+                const img = document.getElementById("previewImage");
+                img.src = p.Images[0].ImageURL;
+                img.style.display = "block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const productId = getProductIdFromURL();
+
+    if (!productId) {
+        console.log("No product ID");
+        return;
+    }
+
+    fetchProduct(productId);
+    setupUpdate(productId);
+});
+
+function getProductIdFromURL() {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+
+    if (parts.length < 2) return null;
+
+    return parts[parts.length - 1];
+}
+
+function fetchProduct(id) {
+    fetch(`http://localhost:3030/products/${id}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Not found");
+            return res.json();
+        })
+        .then(res => {
+            const p = res.data;
+
+            document.getElementById("productId").value = p.ProductID;
+            document.getElementById("productName").value = p.ProductName;
+            document.getElementById("price").value = p.Price;
+            document.getElementById("brand").value = p.Brand;
+
+            document.getElementById("ingredients").value =
+                p.Ingredients ? p.Ingredients.join(", ") : "";
+
+            if (p.Images && p.Images.length > 0) {
+                const img = document.getElementById("previewImage");
+                img.src = p.Images[0].ImageURL;
+                img.style.display = "block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("editForm");
+    if (!form) return;
+
+    const productId = getProductIdFromURL();
+    if (!productId) return;
+
+    fetchProduct(productId);
+    setupUpdate(productId);
+});
+
+// =======================
+// GET PRODUCT ID
+// =======================
+function getProductIdFromURL() {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    return parts[parts.length - 1];
+}
+
+// =======================
+// FETCH PRODUCT
+// =======================
+function fetchProduct(id) {
+    fetch(`http://localhost:3030/products/${id}`)
+        .then(res => res.json())
+        .then(res => {
+            const p = res.data;
+
+            document.getElementById("productId").value = p.ProductID;
+            document.getElementById("productName").value = p.ProductName;
+            document.getElementById("price").value = p.Price;
+            document.getElementById("brand").value = p.Brand;
+
+            document.getElementById("mfgDate").value = p.MFGDate?.split("T")[0];
+            document.getElementById("expDate").value = p.EXPDate?.split("T")[0];
+
+            // ingredients array → string
+            document.getElementById("ingredients").value =
+                p.Ingredients ? p.Ingredients.join(", ") : "";
+
+            // image preview
+            if (p.Images && p.Images.length > 0) {
+                const img = document.getElementById("previewImage");
+                img.src = p.Images[0].ImageURL;
+                img.style.display = "block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+// =======================
+// UPDATE PRODUCT
+// =======================
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("editForm");
+    if (!form) return;
+
+    const productId = getProductIdFromURL();
+    if (!productId) return;
+
+    setupUpdate(productId); // ONLY ONCE
+});
+
+function getProductIdFromURL() {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    return parts[parts.length - 1];
+}
+
+function setupUpdate(productId) {
+    const form = document.getElementById("editForm");
+
+    // 🚨 REMOVE old listener (important fix)
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+
+    newForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+
+        formData.append("ProductName", document.getElementById("productName").value);
+        formData.append("Price", document.getElementById("price").value);
+        formData.append("Brand", document.getElementById("brand").value);
+        formData.append("MFGDate", document.getElementById("mfgDate").value);
+        formData.append("EXPDate", document.getElementById("expDate").value);
+        formData.append("AdminID", "AD789401");
+
+        formData.append("Ingredients", document.getElementById("ingredients").value);
+
+        const file = document.getElementById("imageInput")?.files[0];
+        if (file) formData.append("image", file);
+
+        try {
+            const res = await fetch(`http://localhost:3030/products/${productId}`, {
+                method: "PUT",
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (result.error) {
+                alert("❌ " + result.message);
+                return;
+            }
+
+            alert("✅ Updated successfully!");
+            window.location.href = "/product-management";
+
+        } catch (err) {
+            console.error(err);
+            alert("❌ Update failed");
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("addForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // ❗ IMPORTANT (prevents page reload)
+
+        const formData = new FormData();
+
+        formData.append("ProductName", document.getElementById("productName").value);
+        formData.append("Price", document.getElementById("price").value);
+        formData.append("Brand", document.getElementById("brand").value);
+        formData.append("MFGDate", document.getElementById("mfgDate").value);
+        formData.append("EXPDate", document.getElementById("expDate").value);
+
+        // ✅ ingredients
+        formData.append("Ingredients", document.getElementById("ingredients").value);
+
+        // ⚠️ IMPORTANT: backend requires AdminID
+        formData.append("AdminID", "AD789401");
+
+        // image
+        const file = document.getElementById("imageInput").files[0];
+        if (file) {
+            formData.append("image", file);
+        }
+
+        try {
+            const res = await fetch("http://localhost:3030/products", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (result.error) {
+                alert("❌ " + result.message);
+                return;
+            }
+
+            alert("✅ Product added!");
+            window.location.href = "/product-management";
+
+        } catch (err) {
+            console.error(err);
+            alert("❌ Server error");
+        }
+    });
 });
