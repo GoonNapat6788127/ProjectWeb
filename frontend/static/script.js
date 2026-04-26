@@ -483,9 +483,10 @@ async function runSearch() {
 // SEARCH — Name Search (header bar)
 // ==========================================
 function initNameSearch() {
-  const nameSearchBtn = document.querySelector('.name-search-btn');
-  const searchInput   = document.querySelector('.search-input');
-  if (!nameSearchBtn || !searchInput) return;
+  const searchInput = document.querySelector('.search-input');
+  const searchIcon = document.querySelector('.icon-search'); // อ้างอิงจากไอคอนแว่นขยาย
+  
+  if (!searchInput) return;
 
   const runNameSearch = async () => {
     const name = searchInput.value.trim();
@@ -493,19 +494,19 @@ function initNameSearch() {
 
     const grid = document.getElementById('product-grid');
 
-    // Not on product page → redirect with ?name=
+    // ถ้าไม่ได้อยู่ที่หน้าสินค้า (เช่นหน้า Home) ให้เปลี่ยนหน้าไปพร้อมส่งค่าค้นหา
     if (!grid) {
       window.location.href = `/product?name=${encodeURIComponent(name)}`;
       return;
     }
 
-    // Already on product page → search in place
+    // ถ้าอยู่ที่หน้าสินค้าแล้ว ให้ค้นหาและแสดงผลทันที
     grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Searching...</p>";
 
     try {
       const res = await api.searchByName(name);
 
-      if (!res.data?.length) {
+      if (!res.data || res.data.length === 0) {
         grid.innerHTML = `
           <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
             ❌ No products found for "${name}"
@@ -521,7 +522,11 @@ function initNameSearch() {
     }
   };
 
-  nameSearchBtn.addEventListener('click', runNameSearch);
+  // คลิกที่ไอคอนแว่นขยายเพื่อค้นหา
+  searchIcon?.addEventListener('click', runNameSearch);
+  searchIcon && (searchIcon.style.cursor = 'pointer');
+
+  // กด Enter เพื่อค้นหา
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') runNameSearch();
   });
