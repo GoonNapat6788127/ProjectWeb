@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoonShop - Edit Product</title>
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Judson&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -92,9 +94,10 @@
 
                 <div class="image-col">
                     <div class="img-placeholder">
-                        <img id="previewImage" style="width:100%; display:none; border-radius:10px;" alt="Product Preview" />
+                        <img id="previewImage" style="width:100%; display:none; border-radius:10px;"
+                            alt="Product Preview" />
                     </div>
-                    
+
                     <input type="file" id="imageInput" name="image" accept="image/*" class="file-input">
 
                     <div class="action-btn-group">
@@ -108,7 +111,8 @@
                     <input id="productId" name="ProductID" type="text" class="form-input" readonly>
 
                     <label for="productName">Product Name</label>
-                    <input id="productName" name="ProductName" type="text" class="form-input" placeholder="Product name" required>
+                    <input id="productName" name="ProductName" type="text" class="form-input" placeholder="Product name"
+                        required>
 
                     <label for="price">Price</label>
                     <input id="price" name="Price" type="number" class="form-input" placeholder="Price" required>
@@ -123,7 +127,8 @@
                     <input id="expDate" name="EXPDate" type="date" class="form-input" required>
 
                     <label for="ingredients">Ingredients</label>
-                    <textarea id="ingredients" name="Ingredients" class="form-textarea" placeholder="Ingredients (comma separated)"></textarea>
+                    <textarea id="ingredients" name="Ingredients" class="form-textarea"
+                        placeholder="Ingredients (comma separated)"></textarea>
                 </div>
 
             </form>

@@ -170,26 +170,51 @@ function fetchProductDetail(container) {
                 imageUrl = p.Images[0].ImageURL;
             }
 
-            container.innerHTML = `
-                <div style="display:flex; gap:40px; padding:40px;">
-                    <div>
-                        <img src="${imageUrl}" alt="${p.ProductName}" style="width:400px; border:1px solid #ccc; border-radius:10px;">
+            // Create ingredients list
+            let ingredientsHTML = "";
+            if (p.Ingredients && p.Ingredients.length > 0) {
+                ingredientsHTML = `
+                    <div style="margin-top:20px;">
+                        <b style="font-size:1.2rem;">Ingredients:</b>
+                        <ul style="margin-top:10px; padding-left:20px; line-height:1.6;">
+                            ${p.Ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                        </ul>
                     </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div style="display:flex; gap:40px; padding:40px; max-width:1200px; margin:0 auto;">
                     <div>
-                        <h1>${p.ProductName}</h1>
-                        <p style="font-size:20px; font-weight:bold;">${p.Price} Baht</p>
-                        <p><b>Brand:</b> ${p.Brand}</p>
-                        <p><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
-                        <p><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
-                        <hr style="margin:20px 0;">
-                        <div>
-                            <b>Quantity:</b>
-                            <button id="minus">-</button>
-                            <input id="qty" type="number" value="1" min="1" style="width:50px; text-align:center;">
-                            <button id="plus">+</button>
+                        <img src="${imageUrl}" alt="${p.ProductName}" style="width:400px; border:1px solid #ccc; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    </div>
+                    <div style="flex:1;">
+                        <h1 style="margin-bottom:10px;">${p.ProductName}</h1>
+                        <p style="font-size:24px; font-weight:bold; color:#df6a62; margin-bottom:20px;">${p.Price} Baht</p>
+                        
+                        <div style="background:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #eee;">
+                            <p style="margin-bottom:8px;"><b>Brand:</b> ${p.Brand}</p>
+                            <p style="margin-bottom:8px;"><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
+                            <p style="margin-bottom:8px;"><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
                         </div>
+
+                        ${ingredientsHTML}
+
+                        <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
+                        
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <div>
+                                <b>Quantity:</b>
+                                <div style="display:inline-flex; align-items:center; border:1px solid #ccc; border-radius:5px; margin-left:10px;">
+                                    <button id="minus" style="padding:5px 12px; border:none; background:none; cursor:pointer;">-</button>
+                                    <input id="qty" type="number" value="1" min="1" style="width:50px; text-align:center; border:none; outline:none; font-size:1.1rem;">
+                                    <button id="plus" style="padding:5px 12px; border:none; background:none; cursor:pointer;">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <br>
-                        <button style="padding:10px 20px; background:black; color:white; border:none; cursor:pointer;">
+                        <button style="width:100%; max-width:300px; padding:15px; background:black; color:white; border:none; border-radius:10px; font-size:1.2rem; font-weight:bold; cursor:pointer; transition: opacity 0.2s;">
                             Add to Cart
                         </button>
                     </div>
