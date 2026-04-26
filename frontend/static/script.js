@@ -3,7 +3,7 @@
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 1. Product Grid Page
+    // 1. Product Grid Page (Home)
     const productGrid = document.getElementById("product-grid");
     if (productGrid) {
         fetchAllProducts(productGrid);
@@ -15,29 +15,80 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchProductDetail(detailContainer);
     }
 
-    // 3. Expandable Search Bar (Header)
-    const searchBox = document.getElementById("expandable-search-box");
-    const searchInput = document.getElementById("nav-search-input");
+    // 3. Admin Table Page (List of Products)
+    const table = document.getElementById("productTable");
+    if (table) {
+        fetchProducts(); // Builds the table with the delete logic
+    }
 
-    // SAFE: Only run this if the search bar actually exists on this page!
-    if (searchBox && searchInput) {
-        // Expand when user clicks inside the input
-        searchInput.addEventListener("focus", () => {
-            searchBox.classList.add("active");
+    // 4. Edit Product Page
+    const editForm = document.getElementById("editForm");
+    if (editForm) {
+        const productId = getProductIdFromURL();
+        if (productId) {
+            fetchProductForEdit(productId);
+            setupUpdate(productId);
+        } else {
+            console.log("No product ID found in URL for editing.");
+        }
+    }
+
+    // 5. Toggle Delete Mode (Admin Table)
+    const toggleDeleteBtn = document.getElementById("toggleDeleteBtn");
+    if (toggleDeleteBtn) {
+        toggleDeleteBtn.addEventListener("click", () => {
+            const deleteCols = document.querySelectorAll(".delete-col");
+            deleteCols.forEach(btn => {
+                // Toggle visibility of the minus (-) buttons
+                if (btn.style.display === "none" || btn.style.display === "") {
+                    btn.style.display = "inline-block";
+                } else {
+                    btn.style.display = "none";
+                }
+            });
         });
+    }
 
-        // Shrink when user clicks outside the box
+    // 6. Expandable Search Bar (Header)
+    const searchBoxHeader = document.getElementById("expandable-search-box");
+    const searchInput = document.getElementById("nav-search-input");
+    if (searchBoxHeader && searchInput) {
+        searchInput.addEventListener("focus", () => {
+            searchBoxHeader.classList.add("active");
+        });
         document.addEventListener("click", (event) => {
-            if (!searchBox.contains(event.target)) {
-                searchBox.classList.remove("active");
+            if (!searchBoxHeader.contains(event.target)) {
+                searchBoxHeader.classList.remove("active");
             }
         });
+    }
+
+    // 7. Search Overlay Logic
+    const searchBoxContainer = document.querySelector(".search-container");
+    const overlay = document.getElementById("search-overlay");
+    const panel = document.querySelector(".search-panel");
+    const searchBtn = document.getElementById("search-btn");
+
+    if (searchBoxContainer && overlay) {
+        searchBoxContainer.addEventListener("click", (e) => {
+            overlay.classList.remove("hidden");
+            e.stopPropagation();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!overlay.contains(e.target) && !searchBoxContainer.contains(e.target)) {
+                overlay.classList.add("hidden");
+            }
+        });
+
+        panel?.addEventListener("click", (e) => e.stopPropagation());
+        searchBtn?.addEventListener("click", searchProducts);
     }
 });
 
 
 // ==========================================
-// FUNCTION 1: FETCH ALL PRODUCTS
+// API FUNCTIONS: PRODUCT GRID & DETAILS
 // ==========================================
 function fetchAllProducts(grid) {
     grid.innerHTML = "<p style='grid-column: span 5; text-align: center; font-size: 1.5rem;'>Loading products...</p>";
@@ -48,7 +99,7 @@ function fetchAllProducts(grid) {
             return res.json();
         })
         .then(response => {
-            grid.innerHTML = ""; // Clear loading message
+            grid.innerHTML = ""; 
             const products = response.data;
 
             if (!products || products.length === 0) {
@@ -56,7 +107,6 @@ function fetchAllProducts(grid) {
                 return;
             }
 
-            // Loop through database and build cards
             products.forEach(product => {
                 const card = document.createElement("div");
                 card.classList.add("product-card");
@@ -85,9 +135,7 @@ function fetchAllProducts(grid) {
         });
 }
 
-
 function fetchProductDetail(container) {
-    // safer product ID extraction
     const parts = window.location.pathname.split('/').filter(Boolean);
     const productId = parts[parts.length - 1];
 
@@ -112,13 +160,11 @@ function fetchProductDetail(container) {
                 return;
             }
 
-            // format date nicely
             const formatDate = (date) => {
                 if (!date) return "-";
                 return new Date(date).toLocaleDateString();
             };
 
-            // image fallback
             let imageUrl = `https://placehold.co/500x500?text=${encodeURIComponent(p.ProductName)}`;
             if (p.Images && p.Images.length > 0) {
                 imageUrl = p.Images[0].ImageURL;
@@ -126,55 +172,34 @@ function fetchProductDetail(container) {
 
             container.innerHTML = `
                 <div style="display:flex; gap:40px; padding:40px;">
-                    
                     <div>
-                        <img src="${imageUrl}" 
-                             alt="${p.ProductName}" 
-                             style="width:400px; border:1px solid #ccc; border-radius:10px;">
+                        <img src="${imageUrl}" alt="${p.ProductName}" style="width:400px; border:1px solid #ccc; border-radius:10px;">
                     </div>
-
                     <div>
                         <h1>${p.ProductName}</h1>
-
-                        <p style="font-size:20px; font-weight:bold;">
-                            ${p.Price} Baht
-                        </p>
-
+                        <p style="font-size:20px; font-weight:bold;">${p.Price} Baht</p>
                         <p><b>Brand:</b> ${p.Brand}</p>
                         <p><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
                         <p><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
-
                         <hr style="margin:20px 0;">
-
                         <div>
                             <b>Quantity:</b>
                             <button id="minus">-</button>
                             <input id="qty" type="number" value="1" min="1" style="width:50px; text-align:center;">
                             <button id="plus">+</button>
                         </div>
-
                         <br>
-
-                        <button style="
-                            padding:10px 20px;
-                            background:black;
-                            color:white;
-                            border:none;
-                            cursor:pointer;
-                        ">
+                        <button style="padding:10px 20px; background:black; color:white; border:none; cursor:pointer;">
                             Add to Cart
                         </button>
                     </div>
                 </div>
             `;
 
-            // quantity logic (safe)
             const qtyInput = document.getElementById("qty");
-
             document.getElementById("plus").onclick = () => {
                 qtyInput.value = Number(qtyInput.value || 1) + 1;
             };
-
             document.getElementById("minus").onclick = () => {
                 const current = Number(qtyInput.value || 1);
                 if (current > 1) {
@@ -184,7 +209,6 @@ function fetchProductDetail(container) {
         })
         .catch(err => {
             console.error(err);
-
             if (err.message === "Not Found") {
                 container.innerHTML = "<h2>Product not found</h2>";
             } else {
@@ -193,112 +217,13 @@ function fetchProductDetail(container) {
         });
 }
 
+
 // ==========================================
-// FUNCTION 3: ADMIN LOGIN (SAFE)
+// API FUNCTIONS: ADMIN PRODUCT MANAGEMENT
 // ==========================================
-const adminForm = document.getElementById("admin-login-form");
-
-if (adminForm) {
-    adminForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const username = document.getElementById("admin-username").value.trim();
-        const password = document.getElementById("admin-password").value.trim();
-
-        try {
-            const res = await fetch("http://localhost:3030/admin/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    Username: username,
-                    myPassword: password
-                })
-            });
-
-            const data = await res.json();
-
-            // ❌ LOGIN FAIL
-            if (!res.ok) {
-                alert(data.message || "Login failed");
-                return;
-            }
-
-            // ✅ LOGIN SUCCESS
-            alert("Login success!");
-
-            // store admin
-            localStorage.setItem("adminID", data.AdminID);
-
-            // 🚀 redirect
-            window.location.href = "/product-management";
-
-        } catch (error) {
-            console.error("Login error:", error);
-            alert("Cannot connect to server");
-        }
-    });
-}
-
-// ==============================
-// SEARCH EXPAND / COLLAPSE
-// ==============================
-document.addEventListener("DOMContentLoaded", () => {
-    const searchBox = document.querySelector(".search-container");
-    const overlay = document.getElementById("search-overlay");
-
-    console.log("searchBox:", searchBox);
-    console.log("overlay:", overlay);
-
-    if (searchBox && overlay) {
-        searchBox.addEventListener("click", () => {
-            console.log("CLICKED");
-            overlay.classList.remove("hidden");
-        });
-
-        document.addEventListener("click", (e) => {
-            if (!searchBox.contains(e.target) && !overlay.contains(e.target)) {
-                overlay.classList.add("hidden");
-            }
-        });
-    }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    // Detect page by element
-    const table = document.getElementById("productTable");
-    const form = document.getElementById("editForm");
-
-    // ==========================
-    // PRODUCT LIST PAGE
-    // ==========================
-    if (table) {
-        fetchProducts();
-        return;
-    }
-
-    // ==========================
-    // EDIT PRODUCT PAGE
-    // ==========================
-    if (form) {
-        const productId = getProductIdFromURL();
-
-        if (!productId) {
-            console.log("No product ID (not edit page)");
-            return;
-        }
-
-        fetchProduct(productId);
-        setupUpdate(productId);
-    }
-});
-
-
-// ==========================
-// FETCH ALL PRODUCTS
-// ==========================
+// ==========================================
+// API FUNCTIONS: ADMIN PRODUCT MANAGEMENT
+// ==========================================
 function fetchProducts() {
     const table = document.getElementById("productTable");
 
@@ -306,23 +231,41 @@ function fetchProducts() {
         .then(res => res.json())
         .then(response => {
             const products = response.data;
-
             table.innerHTML = "";
 
             products.forEach(p => {
                 const row = document.createElement("div");
                 row.className = "table-row";
+                
+                // 1. Make the row relative so the delete button stays inside its boundaries
+                row.style.position = "relative";
 
+                // 2. The minus button is now absolutely positioned on the right edge.
+                // This ensures it does NOT touch or move your "Brand" text.
                 row.innerHTML = `
                     <span>${p.ProductID}</span>
                     <span class="p-name">${p.ProductName}</span>
                     <span>${Number(p.Price).toLocaleString()}</span>
                     <span class="brand-text">${p.Brand}</span>
+                    
+                    <button class="delete-item-btn delete-col" style="display: none; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; line-height: 24px; padding: 0; text-align: center; font-family: monospace;">-</button>
                 `;
 
+                // Handle Redirect on row click
                 row.style.cursor = "pointer";
                 row.onclick = () => {
                     window.location.href = `/edit-product/${p.ProductID}`;
+                };
+
+                // Handle Delete Logic
+                const deleteBtn = row.querySelector(".delete-item-btn");
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation(); // Prevents row from redirecting to edit
+                    
+                    const isConfirmed = confirm(`Are you sure you want to delete ${p.ProductName}?`);
+                    if (isConfirmed) {
+                        deleteProduct(p.ProductID);
+                    }
                 };
 
                 table.appendChild(row);
@@ -334,75 +277,36 @@ function fetchProducts() {
         });
 }
 
+function deleteProduct(productId) {
+    fetch(`http://localhost:3030/products/${productId}`, {
+        method: "DELETE" 
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.error) {
+            alert("❌ Failed to delete product: " + result.message);
+        } else {
+            alert("✅ Product deleted successfully!");
+            fetchProducts(); // Refresh table
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("❌ Server error while deleting");
+    });
+}
 
-// ==========================
-// GET PRODUCT ID FROM URL
-// ==========================
+
+// ==========================================
+// API FUNCTIONS: ADD & EDIT
+// ==========================================
 function getProductIdFromURL() {
+    if (!window.location.pathname.includes("edit-product")) return null;
     const parts = window.location.pathname.split('/').filter(Boolean);
-
-    // IMPORTANT: ensure it's edit page
-    if (!window.location.pathname.includes("edit-product")) {
-        return null;
-    }
-
     return parts[parts.length - 1];
 }
 
-
-// ==========================
-// FETCH SINGLE PRODUCT
-// ==========================
-function fetchProduct(id) {
-    fetch(`http://localhost:3030/products/${id}`)
-        .then(res => {
-            if (res.status === 404) throw new Error("Not Found");
-            return res.json();
-        })
-        .then(res => {
-            const p = res.data;
-
-            document.getElementById("productId").value = p.ProductID;
-            document.getElementById("productName").value = p.ProductName;
-            document.getElementById("price").value = p.Price;
-            document.getElementById("brand").value = p.Brand;
-
-            document.getElementById("ingredients").value =
-                p.Ingredients ? p.Ingredients.join(", ") : "";
-
-            if (p.Images && p.Images.length > 0) {
-                const img = document.getElementById("previewImage");
-                img.src = p.Images[0].ImageURL;
-                img.style.display = "block";
-            }
-        })
-        .catch(err => {
-            console.error(err);
-        });
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    const productId = getProductIdFromURL();
-
-    if (!productId) {
-        console.log("No product ID");
-        return;
-    }
-
-    fetchProduct(productId);
-    setupUpdate(productId);
-});
-
-function getProductIdFromURL() {
-    const parts = window.location.pathname.split('/').filter(Boolean);
-
-    if (parts.length < 2) return null;
-
-    return parts[parts.length - 1];
-}
-
-function fetchProduct(id) {
+function fetchProductForEdit(id) {
     fetch(`http://localhost:3030/products/${id}`)
         .then(res => {
             if (!res.ok) throw new Error("Not found");
@@ -415,95 +319,24 @@ function fetchProduct(id) {
             document.getElementById("productName").value = p.ProductName;
             document.getElementById("price").value = p.Price;
             document.getElementById("brand").value = p.Brand;
-
-            document.getElementById("ingredients").value =
-                p.Ingredients ? p.Ingredients.join(", ") : "";
-
-            if (p.Images && p.Images.length > 0) {
-                const img = document.getElementById("previewImage");
-                img.src = p.Images[0].ImageURL;
-                img.style.display = "block";
-            }
-        })
-        .catch(err => {
-            console.error(err);
-        });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("editForm");
-    if (!form) return;
-
-    const productId = getProductIdFromURL();
-    if (!productId) return;
-
-    fetchProduct(productId);
-    setupUpdate(productId);
-});
-
-// =======================
-// GET PRODUCT ID
-// =======================
-function getProductIdFromURL() {
-    const parts = window.location.pathname.split('/').filter(Boolean);
-    return parts[parts.length - 1];
-}
-
-// =======================
-// FETCH PRODUCT
-// =======================
-function fetchProduct(id) {
-    fetch(`http://localhost:3030/products/${id}`)
-        .then(res => res.json())
-        .then(res => {
-            const p = res.data;
-
-            document.getElementById("productId").value = p.ProductID;
-            document.getElementById("productName").value = p.ProductName;
-            document.getElementById("price").value = p.Price;
-            document.getElementById("brand").value = p.Brand;
-
             document.getElementById("mfgDate").value = p.MFGDate?.split("T")[0];
             document.getElementById("expDate").value = p.EXPDate?.split("T")[0];
 
-            // ingredients array → string
-            document.getElementById("ingredients").value =
-                p.Ingredients ? p.Ingredients.join(", ") : "";
+            document.getElementById("ingredients").value = p.Ingredients ? p.Ingredients.join(", ") : "";
 
-            // image preview
             if (p.Images && p.Images.length > 0) {
                 const img = document.getElementById("previewImage");
                 img.src = p.Images[0].ImageURL;
                 img.style.display = "block";
             }
         })
-        .catch(err => {
-            console.error(err);
-        });
-}
-
-// =======================
-// UPDATE PRODUCT
-// =======================
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("editForm");
-    if (!form) return;
-
-    const productId = getProductIdFromURL();
-    if (!productId) return;
-
-    setupUpdate(productId); // ONLY ONCE
-});
-
-function getProductIdFromURL() {
-    const parts = window.location.pathname.split('/').filter(Boolean);
-    return parts[parts.length - 1];
+        .catch(err => console.error(err));
 }
 
 function setupUpdate(productId) {
     const form = document.getElementById("editForm");
-
-    // 🚨 REMOVE old listener (important fix)
+    
+    // Remove old listeners by cloning
     const newForm = form.cloneNode(true);
     form.parentNode.replaceChild(newForm, form);
 
@@ -511,14 +344,12 @@ function setupUpdate(productId) {
         e.preventDefault();
 
         const formData = new FormData();
-
         formData.append("ProductName", document.getElementById("productName").value);
         formData.append("Price", document.getElementById("price").value);
         formData.append("Brand", document.getElementById("brand").value);
         formData.append("MFGDate", document.getElementById("mfgDate").value);
         formData.append("EXPDate", document.getElementById("expDate").value);
         formData.append("AdminID", "AD789401");
-
         formData.append("Ingredients", document.getElementById("ingredients").value);
 
         const file = document.getElementById("imageInput")?.files[0];
@@ -529,7 +360,6 @@ function setupUpdate(productId) {
                 method: "PUT",
                 body: formData
             });
-
             const result = await res.json();
 
             if (result.error) {
@@ -547,29 +377,23 @@ function setupUpdate(productId) {
     });
 }
 
+// Add form setup
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("addForm");
+    const addForm = document.getElementById("addForm");
+    if (!addForm) return;
 
-    if (!form) return;
-
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault(); // ❗ IMPORTANT (prevents page reload)
+    addForm.addEventListener("submit", async (e) => {
+        e.preventDefault(); 
 
         const formData = new FormData();
-
         formData.append("ProductName", document.getElementById("productName").value);
         formData.append("Price", document.getElementById("price").value);
         formData.append("Brand", document.getElementById("brand").value);
         formData.append("MFGDate", document.getElementById("mfgDate").value);
         formData.append("EXPDate", document.getElementById("expDate").value);
-
-        // ✅ ingredients
         formData.append("Ingredients", document.getElementById("ingredients").value);
-
-        // ⚠️ IMPORTANT: backend requires AdminID
         formData.append("AdminID", "AD789401");
 
-        // image
         const file = document.getElementById("imageInput").files[0];
         if (file) {
             formData.append("image", file);
@@ -580,7 +404,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 body: formData
             });
-
             const result = await res.json();
 
             if (result.error) {
@@ -597,8 +420,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+
 // ==========================================
-// FUNCTION: SHOW LONGDO MAP
+// ADMIN LOGIN
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const adminForm = document.getElementById("admin-login-form");
+    if (adminForm) {
+        adminForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("admin-username").value.trim();
+            const password = document.getElementById("admin-password").value.trim();
+
+            try {
+                const res = await fetch("http://localhost:3030/admin/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        Username: username,
+                        myPassword: password
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(data.message || "Login failed");
+                    return;
+                }
+
+                alert("Login success!");
+                localStorage.setItem("adminID", data.AdminID);
+                window.location.href = "/product-management";
+
+            } catch (error) {
+                console.error("Login error:", error);
+                alert("Cannot connect to server");
+            }
+        });
+    }
+});
+
+
+// ==========================================
+// MAP & SEARCH HELPERS
 // ==========================================
 let mapInitialized = false;
 let map;
@@ -610,18 +477,72 @@ function showStoreLocation(lat, lon) {
         });
         mapInitialized = true;
     }
-
-    // set to this location
     map.location({ lat: lat, lon: lon }, true);
-
-    // clear old marker (if any) and add new one
     map.Overlays.clear();
     const marker = new longdo.Marker(
         { lat: lat, lon: lon },
-        {
-            title: 'GoonShop Store',
-            detail: 'Our store location'
-        }
+        { title: 'GoonShop Store', detail: 'Our store location' }
     );
     map.Overlays.add(marker);
+}
+
+function searchProducts() {
+    const overlay = document.getElementById("search-overlay");
+    const grid = document.getElementById("product-grid");
+
+    const minPrice = document.getElementById("min-price");
+    const maxPrice = document.getElementById("max-price");
+    const brandInput = document.getElementById("brand-input");
+    const ingredientRadios = document.querySelectorAll("input[name='ing']");
+
+    let selected = null;
+    ingredientRadios.forEach(r => {
+        if (r.checked) selected = r.parentElement.innerText.trim();
+    });
+
+    const params = new URLSearchParams();
+
+    if (minPrice?.value && maxPrice?.value) {
+        params.append("minPrice", minPrice.value);
+        params.append("maxPrice", maxPrice.value);
+    }
+    if (brandInput?.value.trim()) {
+        params.append("brand", brandInput.value.trim());
+    }
+    if (selected) {
+        params.append("ingredient", selected);
+    }
+
+    fetch(`http://localhost:3030/products/search?${params.toString()}`)
+        .then(res => res.json())
+        .then(res => {
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            if (!res.data || res.data.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #777; font-size: 18px;">
+                        ❌ Not Match
+                    </div>
+                `;
+                return;
+            }
+
+            res.data.forEach(product => {
+                const card = document.createElement("div");
+                card.classList.add("product-card");
+                let img = product.Images?.[0]?.ImageURL || "https://placehold.co/200x200";
+
+                card.innerHTML = `
+                    <a href="/detail/${product.ProductID}" style="text-decoration:none; color:inherit;">
+                        <img src="${img}" style="width:100%">
+                        <h3>${product.ProductName}</h3>
+                        <p>${product.Price} Baht</p>
+                    </a>
+                `;
+                grid.appendChild(card);
+            });
+
+            overlay.classList.add("hidden");
+        });
 }
