@@ -843,16 +843,25 @@ body {
 }
 
 /* --- Content Profile Icon --- */
+/* Fix memberIcon for picture */
 .member-profile-icon {
-    width: 40px; /* ปรับขนาดไอคอนให้สมดุลกับตัวอักษร */
-    height: 40px;
-    justify-self: end; /* ดันไอคอนไปชิดขอบขวาสุดของพื้นที่ grid */
+    width: 80px; /* หรือขนาดที่ต้องการ */
+    height: 80px;
+    overflow: hidden; /* ซ่อนส่วนรูปที่ล้นขอบ */
+    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #eee; /* สีพื้นหลังกรณีโหลดรูปไม่ขึ้น */
 }
 
-.member-profile-icon svg {
+.member-photo {
     width: 100%;
     height: 100%;
+    object-fit: cover; /* ปรับรูปให้พอดีกรอบโดยไม่เสียสัดส่วน */
 }
+
+
 
 /* =========================================
    Product Management (Admin) Styles
