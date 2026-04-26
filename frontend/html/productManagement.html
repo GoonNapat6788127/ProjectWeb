@@ -47,46 +47,44 @@
                 </svg>
             </a>
         </div>
+
+        <div id="search-overlay" class="search-overlay hidden">
+            <div class="search-panel">
+                <div class="filter-row">
+                    <label>Price</label>
+                    <div class="price-range-inputs">
+                        <input type="number" id="min-price" placeholder="MIN" min="0">
+                        <span>-</span>
+                        <input type="number" id="max-price" placeholder="MAX" min="0">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <label>Brand</label>
+                    <input type="text" id="brand-input" placeholder="Search">
+                </div>
+
+                <div class="filter-row">
+                    <label>Ingredient</label>
+                    <div class="checkbox-group">
+                        <label><input type="radio" name="ing"> Chicken</label>
+                        <label><input type="radio" name="ing"> Beef</label>
+                        <label><input type="radio" name="ing"> Fish</label>
+                        <label><input type="radio" name="ing"> Pork</label>
+                        <label><input type="radio" name="ing"> Vegetable</label>
+                    </div>
+                </div>
+
+                <div class="search-footer">
+                    <button id="search-btn">Search</button>
+                </div>
+            </div>
+        </div>
     </header>
-<div id="search-overlay" class="search-overlay hidden">
-    <div class="search-panel">
 
-        <div class="filter-row">
-            <label>Price</label>
-            <div class="price-range-inputs">
-                <input type="number" id="min-price" placeholder="MIN" min="0">
-                <span>-</span>
-                <input type="number" id="max-price" placeholder="MAX" min="0">
-            </div>
-        </div>
-
-        <div class="filter-row">
-            <label>Brand</label>
-            <input type="text" id="brand-input" placeholder="Search">
-        </div>
-
-        <div class="filter-row">
-            <label>Ingredient</label>
-            <div class="checkbox-group">
-                <label><input type="radio" name="ing"> Chicken</label>
-                <label><input type="radio" name="ing"> Beef</label>
-                <label><input type="radio" name="ing"> Fish</label>
-                <label><input type="radio" name="ing"> Pork</label>
-                <label><input type="radio" name="ing"> Vegetable</label>
-            </div>
-        </div>
-
-        <!-- 👇 MOVE BUTTON HERE -->
-        <div class="search-footer">
-            <button id="search-btn">Search</button>
-        </div>
-
-    </div>
-</div>
     <nav class="main-nav">
         <a href="/home">Home</a>
         <a href="/product" class="active">Product</a>
-        <a href="#">Contact</a>
         <a href="/team">Team</a>
     </nav>
 
@@ -103,7 +101,6 @@
             <h3 class="list-title">List of Product</h3>
 
             <div class="product-table-wrapper">
-
                 <div class="table-header">
                     <span>Product ID</span>
                     <span>Product name</span>
@@ -111,14 +108,29 @@
                     <span>Brand</span>
                 </div>
 
-                <!-- 🔥 DYNAMIC CONTENT HERE -->
                 <div class="table-body" id="productTable">
                     <p>Loading products...</p>
                 </div>
-
             </div>
+
         </div>
     </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2026 GoonShop. All rights reserved.</p>
+            <ul class="footer-links">
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+            </ul>
+            <div class="footer-contact">
+                <p>Email: support@goonshop.com</p>
+                <p>Tel: 083-080-1181</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="/script.js"></script>
 

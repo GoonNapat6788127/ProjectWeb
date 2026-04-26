@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
 
 <body>
 
-<header class="top-header">
+    <header class="top-header">
         <div class="logo">GoonShop</div>
 
         <div class="search-container">
@@ -44,118 +45,121 @@
                 </svg>
             </a>
         </div>
+
+        <div id="search-overlay" class="search-overlay hidden">
+            <div class="search-panel">
+                <div class="filter-row">
+                    <label>Price</label>
+                    <div class="price-range-inputs">
+                        <input type="number" id="min-price" placeholder="MIN" min="0">
+                        <span>-</span>
+                        <input type="number" id="max-price" placeholder="MAX" min="0">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <label>Brand</label>
+                    <input type="text" id="brand-input" placeholder="Search">
+                </div>
+
+                <div class="filter-row">
+                    <label>Ingredient</label>
+                    <div class="checkbox-group">
+                        <label><input type="radio" name="ing"> Chicken</label>
+                        <label><input type="radio" name="ing"> Beef</label>
+                        <label><input type="radio" name="ing"> Fish</label>
+                        <label><input type="radio" name="ing"> Pork</label>
+                        <label><input type="radio" name="ing"> Vegetable</label>
+                    </div>
+                </div>
+
+                <div class="search-footer">
+                    <button id="search-btn">Search</button>
+                </div>
+            </div>
+        </div>
     </header>
-<div id="search-overlay" class="search-overlay hidden">
-    <div class="search-panel">
 
-        <div class="filter-row">
-            <label>Price</label>
-            <div class="price-range-inputs">
-                <input type="number" id="min-price" placeholder="MIN" min="0">
-                <span>-</span>
-                <input type="number" id="max-price" placeholder="MAX" min="0">
-            </div>
-        </div>
-
-        <div class="filter-row">
-            <label>Brand</label>
-            <input type="text" id="brand-input" placeholder="Search">
-        </div>
-
-        <div class="filter-row">
-            <label>Ingredient</label>
-            <div class="checkbox-group">
-                <label><input type="radio" name="ing"> Chicken</label>
-                <label><input type="radio" name="ing"> Beef</label>
-                <label><input type="radio" name="ing"> Fish</label>
-                <label><input type="radio" name="ing"> Pork</label>
-                <label><input type="radio" name="ing"> Vegetable</label>
-            </div>
-        </div>
-
-        <!-- 👇 MOVE BUTTON HERE -->
-        <div class="search-footer">
-            <button id="search-btn">Search</button>
-        </div>
-
-    </div>
-</div>
-<nav class="main-nav">
+    <nav class="main-nav">
         <a href="/home">Home</a>
         <a href="/product">Product</a>
-        <a href="#">Contact</a>
         <a href="/team">Team</a>
     </nav>
 
-<main class="add-product-main">
-    <div class="add-product-container">
+    <main class="add-product-main">
+        <div class="add-product-container">
+            <form id="editForm" class="add-form-box" enctype="multipart/form-data">
 
-        <!-- ✅ SAME AS ADD + enctype -->
-        <form id="editForm" class="add-form-box" enctype="multipart/form-data">
+                <div class="image-col">
+                    <div class="img-placeholder">
+                        <img id="previewImage" style="width:100%; display:none; border-radius:10px;" alt="Product Preview" />
+                    </div>
+                    
+                    <input type="file" id="imageInput" name="image" accept="image/*" class="file-input">
 
-            <!-- ================= IMAGE ================= -->
-            <div class="image-col">
-
-                <div class="img-placeholder">
-                    <!-- Preview -->
-                    <img id="previewImage" style="width:100%; display:none; border-radius:10px;" />
-
-                    <!-- ✅ ADD FILE INPUT -->
-                </div>
-                <input 
-        type="file" 
-        id="imageInput" 
-        name="image"
-        accept="image/*"
-    >
-
-                <div class="action-btn-group">
-                    <a href="/product-management" class="btn-form">Cancel</a>
-                    <button type="submit" class="btn-form">Update</button>
+                    <div class="action-btn-group">
+                        <a href="/product-management" class="btn-form">Cancel</a>
+                        <button type="submit" class="btn-form">Update</button>
+                    </div>
                 </div>
 
+                <div class="form-col">
+                    <label for="productId">Product ID (ReadOnly)</label>
+                    <input id="productId" name="ProductID" type="text" class="form-input" readonly>
+
+                    <label for="productName">Product Name</label>
+                    <input id="productName" name="ProductName" type="text" class="form-input" placeholder="Product name" required>
+
+                    <label for="price">Price</label>
+                    <input id="price" name="Price" type="number" class="form-input" placeholder="Price" required>
+
+                    <label for="brand">Brand</label>
+                    <input id="brand" name="Brand" type="text" class="form-input" placeholder="Brand" required>
+
+                    <label for="mfgDate">MFG Date</label>
+                    <input id="mfgDate" name="MFGDate" type="date" class="form-input" required>
+
+                    <label for="expDate">EXP Date</label>
+                    <input id="expDate" name="EXPDate" type="date" class="form-input" required>
+
+                    <label for="ingredients">Ingredients</label>
+                    <textarea id="ingredients" name="Ingredients" class="form-textarea" placeholder="Ingredients (comma separated)"></textarea>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2026 GoonShop. All rights reserved.</p>
+            <ul class="footer-links">
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+            </ul>
+            <div class="footer-contact">
+                <p>Email: support@goonshop.com</p>
+                <p>Tel: 083-080-1181</p>
             </div>
+        </div>
+    </footer>
 
-            <!-- ================= FORM ================= -->
-            <div class="form-col">
+    <script src="/script.js"></script>
 
-                <!-- ✅ KEEP PRODUCT ID -->
-                <input id="productId" name="ProductID" type="text" class="form-input" readonly>
+    <script>
+        document.getElementById("imageInput").addEventListener("change", function () {
+            const file = this.files[0];
+            const preview = document.getElementById("previewImage");
 
-                <input id="productName" name="ProductName" type="text" class="form-input" placeholder="Product name" required>
-
-                <input id="price" name="Price" type="number" class="form-input" placeholder="Price" required>
-
-                <input id="brand" name="Brand" type="text" class="form-input" placeholder="Brand" required>
-
-                <!-- ✅ ADD THESE -->
-                <input id="mfgDate" name="MFGDate" type="date" class="form-input" required>
-
-                <input id="expDate" name="EXPDate" type="date" class="form-input" required>
-
-                <textarea id="ingredients" name="Ingredients" class="form-textarea" placeholder="Ingredients (comma separated)"></textarea>
-
-            </div>
-
-        </form>
-
-    </div>
-</main>
-
-<script src="/script.js"></script>
-
-<!-- ✅ IMAGE PREVIEW -->
-<script>
-document.getElementById("imageInput").addEventListener("change", function () {
-    const file = this.files[0];
-    const preview = document.getElementById("previewImage");
-
-    if (file) {
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
-    }
-});
-</script>
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = "block";
+            }
+        });
+    </script>
 
 </body>
+
 </html>
