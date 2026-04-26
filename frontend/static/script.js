@@ -221,9 +221,6 @@ function fetchProductDetail(container) {
 // ==========================================
 // API FUNCTIONS: ADMIN PRODUCT MANAGEMENT
 // ==========================================
-// ==========================================
-// API FUNCTIONS: ADMIN PRODUCT MANAGEMENT
-// ==========================================
 function fetchProducts() {
     const table = document.getElementById("productTable");
 
@@ -494,7 +491,7 @@ function searchProducts() {
     const maxPrice = document.getElementById("max-price");
     const brandInput = document.getElementById("brand-input");
     const ingredientRadios = document.querySelectorAll("input[name='ing']");
-
+    
     let selected = null;
     ingredientRadios.forEach(r => {
         if (r.checked) selected = r.parentElement.innerText.trim();

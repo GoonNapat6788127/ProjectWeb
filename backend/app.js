@@ -358,6 +358,76 @@ WHERE p.ProductID = ?
     });
 });
 
+// ==============================
+// SEARCH PRODUCTS BY NAME
+// ==============================
+router.get('/products/search', (req, res) => {
+
+    const { name } = req.query;
+
+    if (!name) {
+        return res.status(400).send({
+            error: true,
+            message: 'Please provide product name'
+        });
+    }
+
+    const sql = `
+        SELECT 
+            p.ProductID,
+            p.ProductName,
+            p.Price,
+            p.Brand,
+            p.MFGDate,
+            p.EXPDate,
+            p.AdminID,
+            i.ImageID,
+            i.ImageURL
+        FROM Product p
+        LEFT JOIN Image i ON p.ProductID = i.ProductID
+        WHERE p.ProductName LIKE ?
+    `;
+
+    db.query(sql, [`%${name}%`], (error, results) => {
+
+        if (error) {
+            return res.status(500).send({
+                error: true,
+                message: error.message
+            });
+        }
+
+        const products = {};
+
+        results.forEach(row => {
+
+            if (!products[row.ProductID]) {
+                products[row.ProductID] = {
+                    ProductID: row.ProductID,
+                    ProductName: row.ProductName,
+                    Price: row.Price,
+                    Brand: row.Brand,
+                    MFGDate: row.MFGDate,
+                    EXPDate: row.EXPDate,
+                    AdminID: row.AdminID,
+                    Images: []
+                };
+            }
+
+            if (row.ImageID) {
+                products[row.ProductID].Images.push({
+                    ImageID: row.ImageID,
+                    ImageURL: row.ImageURL
+                });
+            }
+        });
+
+        return res.send({
+            error: false,
+            data: Object.values(products)
+        });
+    });
+});
 
 // ==============================
 // ADD PRODUCT (WITH IMAGE)
