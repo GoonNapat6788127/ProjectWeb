@@ -1,11 +1,28 @@
-/* Color Palette & Basic Setup */
 :root {
+    /* Colors */
     --bg-header: #f2eacc;
     --bg-nav: #f6efdb;
     --bg-main: #faf8f2;
+    --bg-white: #ffffff;
     --text-color: #000000;
+    --text-muted: #666666;
     --border-color: #000000;
     --search-bg: #e6e6e6;
+    
+    /* Single Font for entire website */
+    --font-main: 'Courier Prime', Courier, monospace;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-xxl: 15px;
+    --radius-round: 20px;
+    --radius-circle: 50%;
+    
+    /* Transitions */
+    --transition-fast: 0.2s;
 }
 
 body,
@@ -13,11 +30,11 @@ html {
     margin: 0;
     padding: 0;
     background-color: var(--bg-main);
-    font-family: 'Judson', 'Courier Prime', Courier, serif;
+    font-family: var(--font-main);
     color: var(--text-color);
 }
 
-/* Custom Scrollbar */
+/* scrollbar */
 ::-webkit-scrollbar {
     width: 24px;
 }
@@ -28,11 +45,11 @@ html {
 
 ::-webkit-scrollbar-thumb {
     background: #a9a9a9;
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     border: 6px solid var(--bg-main);
 }
 
-/* --- Header Section --- */
+/* header */
 .top-header {
     background-color: var(--bg-header);
     border: 2px solid var(--border-color);
@@ -50,13 +67,12 @@ html {
     letter-spacing: 1px;
 }
 
-/* Search Bar */
 .search-container {
     display: flex;
     align-items: center;
     background-color: var(--search-bg);
     padding: 8px 15px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     width: 350px;
     position: relative;
 }
@@ -65,13 +81,13 @@ html {
     width: 20px;
     height: 20px;
     margin-right: 10px;
-    color: #333;
+    color: var(--text-muted);
 }
 
 .search-input {
     background: transparent;
     border: none;
-    border-bottom: 1px solid #666;
+    border-bottom: 1px solid var(--text-muted);
     outline: none;
     font-family: inherit;
     font-size: 1.1rem;
@@ -79,7 +95,6 @@ html {
     padding-bottom: 2px;
 }
 
-/* Header Icons */
 .header-icons {
     display: flex;
     gap: 20px;
@@ -97,7 +112,7 @@ html {
     height: 44px;
 }
 
-/* --- Navigation Section --- */
+/* nav */
 .main-nav {
     background-color: var(--bg-nav);
     padding: 20px 50px;
@@ -117,12 +132,11 @@ html {
     text-decoration: underline;
 }
 
-/* --- Global Layout Wrapper --- */
 .home-main {
     margin: 0 8px;
 }
 
-/* --- Hero Categories Section --- */
+/* hero */
 .hero-categories {
     display: flex;
     height: 400px;
@@ -148,16 +162,16 @@ html {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-size: 3.5rem;
     font-weight: bold;
-    color: #000;
+    color: var(--text-color);
     margin: 0;
     text-align: center;
     width: 100%;
 }
 
-/* --- New Product Section --- */
+/* promo products */
 .new-product-section {
     padding: 40px 50px;
     text-align: center;
@@ -176,7 +190,7 @@ html {
     align-items: center;
     max-width: 900px;
     margin: 0 auto;
-    font-family: Arial, sans-serif;
+    font-family: var(--font-main);
 }
 
 .promo-info {
@@ -216,7 +230,7 @@ html {
 }
 
 .product-image-wrap {
-    background-color: #fff;
+    background-color: var(--bg-white);
     padding: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
@@ -227,7 +241,6 @@ html {
     display: block;
 }
 
-/* Responsive adjustments */
 @media (max-width: 900px) {
     .new-product-container {
         flex-direction: column;
@@ -260,7 +273,7 @@ html {
     }
 }
 
-/* --- Product Grid Section --- */
+/* product grid */
 .product-container {
     padding: 30px 40px;
     margin: 0 8px;
@@ -283,7 +296,7 @@ html {
 .image-box {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background-color: #ffffff;
+    background-color: var(--bg-white);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -312,10 +325,8 @@ html {
     font-weight: bold;
 }
 
-/* ========================================= */
-/* --- NEW: Product Detail Page Styles ---   */
-/* ========================================= */
 
+/* product detail page */
 .product-detail-container {
     display: flex;
     padding: 40px 50px;
@@ -324,7 +335,6 @@ html {
     max-width: 1200px;
 }
 
-/* Left Sidebar: Similar Products */
 .similar-products {
     width: 150px;
     display: flex;
@@ -339,9 +349,9 @@ html {
 }
 
 .similar-item {
-    background-color: #fff;
+    background-color: var(--bg-white);
     padding: 5px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -350,7 +360,6 @@ html {
     display: block;
 }
 
-/* Center Column: Product Gallery */
 .product-gallery {
     flex: 1;
     display: flex;
@@ -360,7 +369,7 @@ html {
 }
 
 .main-image {
-    background-color: #fff;
+    background-color: var(--bg-white);
     width: 100%;
     max-width: 450px;
     padding: 20px;
@@ -379,7 +388,7 @@ html {
 
 .thumbnail-row img {
     width: 80px;
-    background-color: #fff;
+    background-color: var(--bg-white);
     padding: 5px;
     cursor: pointer;
     border: 1px solid transparent;
@@ -389,7 +398,6 @@ html {
     border: 1px solid #333;
 }
 
-/* Right Column: Product Information */
 .product-info {
     flex: 1.2;
     display: flex;
@@ -422,8 +430,8 @@ html {
 
 .qty-controls {
     display: inline-flex;
-    border: 1px solid #000;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    background: var(--bg-white);
     align-items: center;
     margin-bottom: 20px;
     width: 120px;
@@ -450,35 +458,33 @@ html {
 
 .add-to-cart {
     background-color: #df6a62;
-    color: #000;
+    color: var(--text-color);
     border: none;
     padding: 15px;
     font-size: 1.8rem;
     font-family: inherit;
     font-weight: bold;
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     cursor: pointer;
     max-width: 350px;
     margin-bottom: 40px;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-fast);
 }
 
 .add-to-cart:hover {
     background-color: #c95c56;
 }
 
-/* Description Box */
 .description-box {
     background-color: #e6ded6;
     padding: 25px;
-    border-radius: 15px;
+    border-radius: var(--radius-xxl);
     max-width: 400px;
-    font-family: Arial, sans-serif;
-    /* Mockup uses a sans-serif font for this specific box */
+    font-family: var(--font-main);
 }
 
 .description-box h3 {
-    font-family: 'Judson', serif;
+    font-family: var(--font-main);
     font-size: 2rem;
     margin: 0 0 15px 0;
     font-weight: normal;
@@ -490,7 +496,6 @@ html {
     margin: 0;
 }
 
-/* Responsive for Detail Page */
 @media (max-width: 900px) {
     .product-detail-container {
         flex-direction: column;
@@ -508,42 +513,28 @@ html {
     }
 }
 
-/* ========================================= */
-/* --- NEW: ADMIN LOGIN SECTION (ISOLATED) - */
-/* ========================================= */
 
+/* admin login */
 .admin-login-wrapper {
     display: flex;
     justify-content: center;
-
-    /* CHANGE 1: This stops it from centering vertically and pushes it to the top */
     align-items: flex-start;
-
     min-height: calc(100vh - 180px);
-
-    /* CHANGE 2: The first number (80px) controls exactly how far down from the nav bar it sits. 
-       Change 80px to 40px if you want it even higher, or 120px to move it a bit lower! */
     padding: 80px 20px 40px 20px;
 }
 
-/* Added Background Box to the Form */
 .admin-login-box {
     width: 100%;
     max-width: 450px;
-    background-color: #ffffff;
-    /* White background */
+    background-color: var(--bg-white);
     padding: 40px;
-    /* Space inside the box */
-    border: 2px solid #000000;
-    /* Outline to match your theme */
-    border-radius: 12px;
-    /* Rounded corners */
-    box-shadow: 4px 4px 0px #000000;
-    /* Subtle shadow for depth */
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: 4px 4px 0px var(--border-color);
 }
 
 .admin-login-title {
-    font-family: 'Judson', serif;
+    font-family: var(--font-main);
     font-size: 3rem;
     margin-bottom: 5px;
     margin-top: 0;
@@ -551,9 +542,9 @@ html {
 }
 
 .admin-login-subtitle {
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 1.1rem;
-    color: #666;
+    color: var(--text-muted);
     margin-top: 0;
     margin-bottom: 35px;
 }
@@ -562,30 +553,26 @@ html {
     margin-bottom: 20px;
     width: 100%;
     position: relative;
-    /* Crucial for keeping the eye icon inside */
 }
 
 .admin-input-group input {
     width: 100%;
     padding: 15px 20px;
-    border: 1px solid #000;
-    border-radius: 8px;
-    font-family: 'Courier Prime', monospace;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: var(--font-main);
     font-size: 1.1rem;
     background: transparent;
     outline: none;
     box-sizing: border-box;
-    /* FIX: Prevents input from stretching outside the box */
 }
 
 .admin-input-group input::placeholder {
     color: #777;
 }
 
-/* Fixed Password Group & Eye Icon */
 .admin-password-group input {
     padding-right: 50px;
-    /* Leaves space so text doesn't type over the icon */
 }
 
 .admin-eye-icon {
@@ -595,11 +582,10 @@ html {
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
-    color: #000;
+    color: var(--text-color);
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: opacity var(--transition-fast);
     z-index: 10;
-    /* Ensures it stays clickable above the input */
 }
 
 .admin-forgot-link {
@@ -608,8 +594,8 @@ html {
 }
 
 .admin-forgot-link a {
-    color: #000;
-    font-family: 'Courier Prime', monospace;
+    color: var(--text-color);
+    font-family: var(--font-main);
     text-decoration: underline;
     font-size: 1rem;
 }
@@ -619,7 +605,7 @@ html {
     align-items: center;
     gap: 10px;
     margin-bottom: 30px;
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 1.1rem;
 }
 
@@ -627,39 +613,35 @@ html {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #000;
+    accent-color: var(--text-color);
 }
 
 .admin-login-btn {
     width: 100%;
     padding: 15px;
-    background-color: #000;
-    color: #fff;
+    background-color: var(--text-color);
+    color: var(--bg-white);
     border: none;
-    border-radius: 8px;
-    font-family: 'Courier Prime', monospace;
+    border-radius: var(--radius-md);
+    font-family: var(--font-main);
     font-size: 1.3rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-fast);
 }
 
 .admin-login-btn:hover {
     background-color: #333;
 }
 
-/* ========================================= */
-/* --- SEARCH EXPAND PANEL ----------------- */
-/* ========================================= */
 
+/* search expanded */
 .search-overlay {
     position: absolute;
     top: 100px;
-    /* Adjust this to perfectly touch the bottom of your header */
     left: 0;
     width: 100%;
     background: #d9d6d3;
     padding: 30px 10%;
-    /* Uses percentages to keep it centered on large screens */
     z-index: 999;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -671,11 +653,9 @@ html {
 .search-panel {
     max-width: 800px;
     margin: 0 auto;
-    /* Centers the filter rows inside the panel */
     display: flex;
     flex-direction: column;
     gap: 15px;
-    /* Spacing between rows */
 }
 
 .filter-row {
@@ -684,27 +664,23 @@ html {
     gap: 20px;
 }
 
-/* ONLY target the first main label (Price, Brand, Ingredient) */
-.filter-row>label {
+.filter-row > label {
     width: 130px;
     font-size: 1.3rem;
     font-weight: bold;
-    font-family: 'Judson', serif;
+    font-family: var(--font-main);
 }
 
-/* --- Brand Input --- */
 .filter-row input[type="text"] {
     width: 250px;
-    /* Set a specific width instead of stretching */
     padding: 12px 20px;
     border-radius: 25px;
     border: none;
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 1rem;
     outline: none;
 }
 
-/* --- Price Min/Max Inputs --- */
 .price-range-inputs {
     display: flex;
     align-items: center;
@@ -714,9 +690,9 @@ html {
 .price-range-inputs input[type="number"] {
     width: 100px;
     padding: 10px 15px;
-    border-radius: 20px;
+    border-radius: var(--radius-round);
     border: none;
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 1rem;
     text-align: center;
     outline: none;
@@ -727,16 +703,14 @@ html {
     font-size: 1.2rem;
 }
 
-/* --- Ingredient Radio Buttons --- */
 .checkbox-group {
     display: flex;
     gap: 25px;
     flex-wrap: wrap;
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 1.1rem;
 }
 
-/* Fixes the width issue so they don't stretch */
 .checkbox-group label {
     width: auto;
     font-size: 1.1rem;
@@ -751,33 +725,23 @@ html {
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #000000;
-    /* Turns the selected dot black */
+    accent-color: var(--text-color);
 }
 
-/* =========================================
-   New Team Page Styles (refined)
-   ========================================= */
 
-/* Use the Judson and Courier Prime fonts already loaded in your HTML head */
-
-/* --- Page and Global Styles --- */
+/* team page */
 body {
     background-color: var(--bg-main);
-    /* The main page cream background from the image */
     margin: 0;
-    font-family: Arial, sans-serif;
-    /* fallback */
+    font-family: var(--font-main);
     box-sizing: border-box;
 }
 
-/* --- Refined Header Icons --- */
 .top-header .header-icons svg.icon.user-icon-header {
     width: 26px;
     height: 26px;
 }
 
-/* --- Team List Main Section --- */
 .team-list-main {
     padding: 0;
     display: flex;
@@ -786,7 +750,6 @@ body {
 
 .team-list-content {
     background-color: var(--bg-main);
-    /* matches main page cream */
     width: 100%;
     max-width: 900px;
     min-height: 80vh;
@@ -794,7 +757,6 @@ body {
     position: relative;
 }
 
-/* --- Back Button --- */
 .back-button-container {
     margin-bottom: 20px;
 }
@@ -807,40 +769,13 @@ body {
     width: 30px;
     height: 30px;
     stroke-width: 1.5;
-    /* slightly thinner stroke for the main content icon */
-    transition: transform 0.2s;
+    transition: transform var(--transition-fast);
 }
 
 .back-icon:hover {
     transform: translateX(-3px);
 }
 
-/* --- Team Members List --- */
-.team-members-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* center the content block horizontally */
-    gap: 30px;
-    /* spacing between rows */
-    margin-top: 40px;
-}
-
-.member-row {
-    display: flex;
-    width: 100%;
-    max-width: 600px;
-    /* controls overall width of the list items */
-    justify-content: space-between;
-    /* space name, ID, and icon */
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 1px dashed #cccccc;
-    /* optional separator */
-}
-
-/* Typography for Names and IDs */
-/* --- Team Members List (แทนที่โค้ดเดิม) --- */
 .team-members-container {
     display: flex;
     flex-direction: column;
@@ -851,71 +786,54 @@ body {
 
 .member-row {
     display: grid;
-    /* แบ่งเป็น 3 คอลัมน์: 1fr (กินพื้นที่ที่เหลือทั้งหมด), 200px (สำหรับรหัส), และ auto (ขนาดพอดีไอคอน) */
     grid-template-columns: 1fr 200px auto;
     width: 100%;
     max-width: 850px;
-    /* ขยายความกว้างคอนเทนเนอร์ให้กว้างขึ้น (เดิม 600px) */
     align-items: center;
     padding-bottom: 20px;
 }
 
-/* Typography for Names and IDs */
 .member-name {
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 2rem;
     font-weight: 400;
     color: #222222;
     text-align: left;
     white-space: nowrap;
-    /* บังคับให้อยู่บรรทัดเดียว */
 }
 
 .member-id {
-    font-family: 'Courier Prime', monospace;
+    font-family: var(--font-main);
     font-size: 2rem;
     color: #222222;
     font-weight: 400;
     text-align: left;
-    /* จัดรหัสนักศึกษาให้ชิดซ้าย เพื่อให้ตั้งตรงเป็นคอลัมน์เดียวกัน */
 }
 
-/* --- Content Profile Icon --- */
-/* Fix memberIcon for picture */
 .member-profile-icon {
     width: 80px;
-    /* หรือขนาดที่ต้องการ */
     height: 80px;
     overflow: hidden;
-    /* ซ่อนส่วนรูปที่ล้นขอบ */
-    border-radius: 50%;
-    /* ทำให้เป็นวงกลม */
+    border-radius: var(--radius-circle);
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #eee;
-    /* สีพื้นหลังกรณีโหลดรูปไม่ขึ้น */
 }
 
 .member-photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* ปรับรูปให้พอดีกรอบโดยไม่เสียสัดส่วน */
 }
 
 
-
-/* =========================================
-   Product Management (Admin) Styles
-   ========================================= */
-
+/* admin product management */
 .admin-main {
     display: flex;
     justify-content: center;
     padding: 40px 20px;
     background-color: var(--bg-main);
-    /* ใช้สีพื้นหลังหลักจาก :root */
 }
 
 .admin-container {
@@ -923,7 +841,6 @@ body {
     max-width: 1100px;
 }
 
-/* --- Action Buttons --- */
 .action-buttons {
     display: flex;
     justify-content: space-around;
@@ -933,29 +850,25 @@ body {
 
 .btn-outline {
     background-color: var(--bg-header);
-    /* ใช้สีเดียวกับ Header */
     border: 2px solid var(--border-color);
-    /* ใช้สีเส้นขอบจาก :root */
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     padding: 12px 40px;
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-color);
     cursor: pointer;
     box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
+    transition: all var(--transition-fast);
 }
 
 .btn-outline:hover {
     background-color: var(--bg-nav);
-    /* ใช้สี Nav ตอน Hover เพื่อให้ดูมีมิติ */
     transform: translateY(-2px);
 }
 
-/* --- Table Area --- */
 .list-title {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-main);
     font-size: 1.2rem;
     font-weight: bold;
     color: var(--text-color);
@@ -964,19 +877,17 @@ body {
 
 .product-table-wrapper {
     background-color: var(--bg-header);
-    /* ใช้สีกล่องเดียวกับ Header */
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     padding: 20px;
 }
 
 .table-header,
 .table-row {
     display: grid;
-    /* เปลี่ยนสัดส่วนใหม่: ให้ชื่อสินค้าแคบลงนิดนึง เพื่อดึงช่องอื่นเข้ามาใกล้ๆ */
     grid-template-columns: 1.5fr 2.5fr 1.5fr 1.5fr;
     align-items: center;
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-size: 1.1rem;
     color: var(--text-color);
 }
@@ -986,7 +897,6 @@ body {
     padding: 0 20px 15px 20px;
 }
 
-/* ส่วนของรายการที่ Scroll ได้ */
 .table-body {
     max-height: 400px;
     overflow-y: auto;
@@ -996,53 +906,44 @@ body {
     gap: 15px;
 }
 
-/* แถวข้อมูลแต่ละแถว */
 .table-row {
     background-color: var(--search-bg);
     border: 1px solid var(--border-color);
-    border-radius: 15px;
+    border-radius: var(--radius-xxl);
     padding: 15px 20px;
 }
 
-/* บังคับให้ข้อความใช้พื้นที่เต็มบล็อก */
 .table-header span,
 .table-row span {
     display: block;
     width: 100%;
 }
 
-/* คอลัมน์ที่ 1: Product ID (กึ่งกลาง) */
 .table-header span:nth-child(1),
 .table-row span:nth-child(1) {
     text-align: center !important;
 }
 
-/* 1. ขยับเฉพาะ "หัวข้อ" (Title) */
 .table-header span:nth-child(2) {
     text-align: left !important;
     padding-left: 60px !important;
-    /* เพิ่มตัวเลขตรงนี้เพื่อดันเฉพาะหัวข้อไปทางขวา (ลองปรับเพิ่ม/ลดได้ครับ) */
 }
 
-/* 2. ล็อค "ข้อมูล" ชื่อสินค้าด้านล่าง (ให้อยู่ที่เดิม) */
 .table-row span:nth-child(2) {
     text-align: left !important;
     padding-left: 40px !important;
 }
 
-/* คอลัมน์ที่ 3: Price (กึ่งกลาง) */
 .table-header span:nth-child(3),
 .table-row span:nth-child(3) {
     text-align: center !important;
 }
 
-/* คอลัมน์ที่ 4: Brand (กึ่งกลาง) */
 .table-header span:nth-child(4),
 .table-row span:nth-child(4) {
     text-align: center !important;
 }
 
-/* สีสถานะ (จุดนี้ขออนุญาตคงรหัสสีเฉพาะไว้ เพราะเป็นสีบอกสถานะ เขียว/แดง) */
 .status-available {
     color: #4caf50;
     font-weight: 700;
@@ -1053,7 +954,6 @@ body {
     font-weight: 700;
 }
 
-/* ตกแต่ง Custom Scrollbar ฝั่งตารางให้เข้าธีม */
 .table-body::-webkit-scrollbar {
     width: 16px;
 }
@@ -1064,16 +964,12 @@ body {
 
 .table-body::-webkit-scrollbar-thumb {
     background: #a9a9a9;
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     border: 4px solid var(--bg-header);
-    /* ตัดขอบด้วยสีพื้นหลังของกล่องตาราง */
 }
 
 
-/* =========================================
-   Add Product Page Styles
-   ========================================= */
-
+/* add/edit product */
 .add-product-main {
     display: flex;
     justify-content: center;
@@ -1088,14 +984,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    /* ระยะห่างระหว่างกล่อง Header กับกล่อง Form */
 }
 
-/* --- Add Header Box --- */
 .add-header-box {
     background-color: var(--bg-header);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     padding: 20px 40px;
     display: flex;
     justify-content: space-between;
@@ -1109,7 +1003,7 @@ body {
 }
 
 .add-header-title h1 {
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-size: 2.5rem;
     font-weight: bold;
     margin: 0;
@@ -1125,25 +1019,22 @@ body {
 .back-icon-large {
     width: 45px;
     height: 45px;
-    transition: transform 0.2s;
+    transition: transform var(--transition-fast);
 }
 
 .back-icon-large:hover {
     transform: translateX(-3px);
 }
 
-/* --- Add Form Box --- */
 .add-form-box {
     background-color: var(--bg-header);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     padding: 40px;
     display: flex;
     gap: 40px;
-    /* ระยะห่างระหว่างคอลัมน์ซ้ายและขวา */
 }
 
-/* คอลัมน์ซ้าย */
 .image-col {
     flex: 1;
     display: flex;
@@ -1155,11 +1046,9 @@ body {
 .img-placeholder {
     width: 100%;
     aspect-ratio: 1 / 1;
-    /* ทำให้เป็นสี่เหลี่ยมจัตุรัสเสมอ */
     background-color: var(--search-bg);
-    /* สีเทาอ่อน */
     border: 1px solid var(--border-color);
-    border-radius: 20px;
+    border-radius: var(--radius-round);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1168,32 +1057,30 @@ body {
 .action-btn-group {
     display: flex;
     gap: 20px;
+    width: 100%;
+    justify-content: center;
 }
 
 .btn-form {
     background-color: var(--search-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     padding: 15px 40px;
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-size: 1.2rem;
     color: var(--text-color);
     cursor: pointer;
     text-decoration: none;
-    /* สำหรับปุ่ม Cancel ที่เป็น <a> */
     display: inline-block;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-fast);
 }
 
 .btn-form:hover {
     background-color: #d1cbc2;
-    /* ให้สีเข้มขึ้นนิดนึงตอน Hover */
 }
 
-/* คอลัมน์ขวา */
 .form-col {
     flex: 1.2;
-    /* ให้ฝั่งช่องกรอกข้อมูลกว้างกว่าฝั่งรูปภาพเล็กน้อย */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -1204,11 +1091,10 @@ body {
     width: 100%;
     background-color: var(--search-bg);
     border: 1px solid var(--border-color);
-    border-radius: 15px;
+    border-radius: var(--radius-xxl);
     padding: 15px 20px;
-    font-family: 'Courier Prime', Courier, monospace;
+    font-family: var(--font-main);
     font-style: italic;
-    /* ตัวเอียงตามดีไซน์ */
     font-size: 1.1rem;
     color: var(--text-color);
     box-sizing: border-box;
@@ -1217,53 +1103,31 @@ body {
 .form-textarea {
     resize: vertical;
     min-height: 180px;
-    /* ความสูงของช่อง Description */
 }
 
 .form-input:focus,
 .form-textarea:focus {
     outline: none;
     border-width: 2px;
-    /* ขอบหนาขึ้นตอนคลิกพิมพ์ */
 }
 
-/* --- ปรับกลุ่มปุ่มหน้า Add Product ให้สมดุล --- */
-.action-btn-group {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    /* บังคับให้ความกว้างรวมเท่ากับกล่องรูปภาพด้านบน */
-    justify-content: center;
-}
-
-/* บังคับให้ปุ่มด้านในขยายตัวเท่าๆ กัน */
 .action-btn-group .btn-form {
     flex: 1;
-    /* แบ่งพื้นที่กันคนละครึ่ง (50/50) */
     text-align: center;
     padding: 15px 0;
-    /* เอา padding ด้านข้างออกเพื่อให้ปุ่มขยายตาม flex แทน */
     box-sizing: border-box;
 }
 
-/* =========================================
-   Edit Product Page Styles
-   ========================================= */
-
-/* --- ส่วนเพิ่มเติมสำหรับหน้า Edit Product --- */
 .edit-btn-group {
     display: flex;
     gap: 15px;
-    /* ระยะห่างระหว่าง 3 ปุ่ม */
     width: 100%;
     justify-content: center;
 }
 
 .edit-btn-group .btn-form {
     padding: 15px 20px;
-    /* ลดความกว้างด้านข้างลงนิดหน่อยเพื่อให้วาง 3 ปุ่มได้พอดี */
     flex: 1;
-    /* ให้ทั้ง 3 ปุ่มมีความกว้างเท่าๆ กัน */
 }
 
 #map-section {
@@ -1276,14 +1140,15 @@ body {
 
 .map {
     border: 4px solid var(--border-color);
-    border-radius: 20px;
+    border-radius: var(--radius-round);
     width: 650px;
     height: 450px;
 }
 
+/* footer */
 footer {
   background: #111;
-  color: #fff;
+  color: var(--bg-white);
   padding: 20px;
   text-align: center;
 }
@@ -1299,6 +1164,6 @@ footer {
 }
 
 .footer-links a {
-  color: white;
+  color: var(--bg-white);
   text-decoration: none;
 }
