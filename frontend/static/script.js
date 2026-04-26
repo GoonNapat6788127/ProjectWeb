@@ -597,3 +597,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+// ==========================================
+// FUNCTION: SHOW LONGDO MAP
+// ==========================================
+let mapInitialized = false;
+let map;
+
+function showStoreLocation(lat, lon) {
+    if (!mapInitialized) {
+        map = new longdo.Map({
+            placeholder: document.getElementById('map')
+        });
+        mapInitialized = true;
+    }
+
+    // set to this location
+    map.location({ lat: lat, lon: lon }, true);
+
+    // clear old marker (if any) and add new one
+    map.Overlays.clear();
+    const marker = new longdo.Marker(
+        { lat: lat, lon: lon },
+        {
+            title: 'GoonShop Store',
+            detail: 'Our store location'
+        }
+    );
+    map.Overlays.add(marker);
+}
