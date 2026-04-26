@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoonShop - Home</title>
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap"
+        rel="stylesheet">
     <script type="text/javascript" src="https://api.longdo.com/map3/?key=6cceda7b5cf95dc5adabcabf87e6989e"></script>
 </head>
 
@@ -15,25 +17,34 @@
         <div class="logo">GoonShop</div>
 
         <div class="search-container">
-            <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <input type="text" class="search-input" placeholder="Search">
+            <button class="name-search-btn">Search</button>
         </div>
 
         <div class="header-icons">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                </path>
             </svg>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
                 <circle cx="20" cy="21" r="1"></circle>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
             </svg>
-            <a href="/admin" aria-label="Admin Login" style="color: inherit; text-decoration: none; display: flex; align-items: center;">
+            <a href="/admin" aria-label="Admin Login"
+                style="color: inherit; text-decoration: none; display: flex; align-items: center;">
                 <svg class="icon user-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"></path>
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z">
+                    </path>
                 </svg>
             </a>
         </div>
@@ -48,12 +59,12 @@
                         <input type="number" id="max-price" placeholder="MAX" min="0">
                     </div>
                 </div>
-    
+
                 <div class="filter-row">
                     <label>Brand</label>
                     <input type="text" id="brand-input" placeholder="Search">
                 </div>
-    
+
                 <div class="filter-row">
                     <label>Ingredient</label>
                     <div class="checkbox-group">
@@ -64,7 +75,7 @@
                         <label><input type="radio" name="ing"> Vegetable</label>
                     </div>
                 </div>
-    
+
                 <div class="search-footer">
                     <button id="search-btn">Search</button>
                 </div>
@@ -81,24 +92,31 @@
     <main class="home-main">
         <section class="hero-categories">
             <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80" alt="Premium Salmon">
+                <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80"
+                    alt="Premium Salmon">
                 <h2 class="category-title">Premium</h2>
             </div>
             <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80" alt="Fresh Shrimp">
+                <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80"
+                    alt="Fresh Shrimp">
                 <h2 class="category-title">Fresh</h2>
             </div>
             <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80" alt="Quality Vegetables">
+                <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80"
+                    alt="Quality Vegetables">
                 <h2 class="category-title">Quality</h2>
             </div>
         </section>
 
         <section class="new-product-section">
             <h2 class="section-heading">Frozen Food Retails Business Domain</h2>
-            <p>Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products preserved through freezing. This inventory typically 
-                spans several categories, including raw meats, poultry, seafood, vegetables, fruits, and increasingly popular processed "ready-to-eat" or "ready-to-cook" meals. By maintaining these items at sub-zero temperatures, the business effectively halts microbial growth, 
-                thereby preserving nutritional value, maintaining peak freshness, and significantly extending shelf life compared to fresh counterparts.</p>
+            <p>Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products
+                preserved through freezing. This inventory typically
+                spans several categories, including raw meats, poultry, seafood, vegetables, fruits, and increasingly
+                popular processed "ready-to-eat" or "ready-to-cook" meals. By maintaining these items at sub-zero
+                temperatures, the business effectively halts microbial growth,
+                thereby preserving nutritional value, maintaining peak freshness, and significantly extending shelf life
+                compared to fresh counterparts.</p>
         </section>
 
         <section>
