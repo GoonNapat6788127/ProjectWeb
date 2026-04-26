@@ -919,29 +919,36 @@ body {
     width: 100%;
 }
 
-.table-header span:nth-child(1),
-.table-row span:nth-child(1) {
-    text-align: center !important;
-}
+/* Product ID*/
+.table-header span:nth-child(1) { text-align: center !important; }
+.table-row span:nth-child(1)    { text-align: center !important; }
 
+/* Product name */
 .table-header span:nth-child(2) {
     text-align: left !important;
-    padding-left: 60px !important;
+    padding-left: 60px !important; 
 }
-
 .table-row span:nth-child(2) {
     text-align: left !important;
-    padding-left: 40px !important;
+    padding-left: 70px !important; 
 }
 
-.table-header span:nth-child(3),
+/* Price */
+.table-header span:nth-child(3) {
+    text-align: center !important; 
+}
 .table-row span:nth-child(3) {
     text-align: center !important;
+    padding-left: 20px !important; 
 }
 
-.table-header span:nth-child(4),
+/* Brand */
+.table-header span:nth-child(4) {
+    text-align: center !important; 
+}
 .table-row span:nth-child(4) {
     text-align: center !important;
+    padding-left: 30px !important; 
 }
 
 .status-available {
