@@ -1,5 +1,3 @@
-// app.js
-
 // ==========================================
 // CONFIG
 // ==========================================
@@ -25,8 +23,8 @@ const api = {
     fetch(`${BASE_URL}/products/search?${params}`).then(handleResponse),
 
   searchByName: (name) =>
-  fetch(`${BASE_URL}/products/search?name=${encodeURIComponent(name)}`).then(handleResponse),
-  
+    fetch(`${BASE_URL}/products/search?name=${encodeURIComponent(name)}`).then(handleResponse),
+
   createProduct: (formData) =>
     fetch(`${BASE_URL}/products`, { method: 'POST', body: formData }).then(handleResponse),
 
@@ -59,6 +57,11 @@ const getIdFromURL = () => {
   return parts[parts.length - 1] || null;
 };
 
+function getProductIdFromURL() {
+  if (!window.location.pathname.includes('edit-product')) return null;
+  return getIdFromURL();
+}
+
 
 // ==========================================
 // UI — PRODUCT GRID
@@ -87,8 +90,21 @@ async function initProductGrid() {
 
   grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Loading products...</p>";
 
+  // Check if we arrived here from a name search
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get('name');
+
   try {
-    const res = await api.getProducts();
+    const res = name ? await api.searchByName(name) : await api.getProducts();
+
+    if (name && !res.data?.length) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
+          ❌ No products found for "${name}"
+        </div>`;
+      return;
+    }
+
     renderProductGrid(grid, res.data);
   } catch {
     grid.innerHTML = "<p style='grid-column:span 5;text-align:center;color:red'>Error loading products.</p>";
@@ -100,27 +116,53 @@ async function initProductGrid() {
 // UI — PRODUCT DETAIL
 // ==========================================
 function renderProductDetail(container, p) {
+  let ingredientsHTML = '';
+  if (p.Ingredients && p.Ingredients.length > 0) {
+    ingredientsHTML = `
+      <div style="margin-top:20px;">
+        <b style="font-size:1.2rem;">Ingredients:</b>
+        <ul style="margin-top:10px;padding-left:20px;line-height:1.6;">
+          ${p.Ingredients.map(ing => `<li>${ing}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
-    <div style="display:flex;gap:40px;padding:40px">
+    <div style="display:flex;gap:40px;padding:40px;max-width:1200px;margin:0 auto;">
       <div>
         <img src="${getImageUrl(p.Images, p.ProductName, '500x500')}"
-             alt="${p.ProductName}" style="width:400px;border:1px solid #ccc;border-radius:10px">
+             alt="${p.ProductName}"
+             style="width:400px;border:1px solid #ccc;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
       </div>
-      <div>
-        <h1>${p.ProductName}</h1>
-        <p style="font-size:20px;font-weight:bold">${p.Price} Baht</p>
-        <p><b>Brand:</b> ${p.Brand}</p>
-        <p><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
-        <p><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
-        <hr style="margin:20px 0">
-        <div>
-          <b>Quantity:</b>
-          <button id="minus">-</button>
-          <input id="qty" type="number" value="1" min="1" style="width:50px;text-align:center">
-          <button id="plus">+</button>
+      <div style="flex:1;">
+        <h1 style="margin-bottom:10px;">${p.ProductName}</h1>
+        <p style="font-size:24px;font-weight:bold;color:#df6a62;margin-bottom:20px;">${p.Price} Baht</p>
+
+        <div style="background:#f9f9f9;padding:20px;border-radius:10px;border:1px solid #eee;">
+          <p style="margin-bottom:8px;"><b>Brand:</b> ${p.Brand}</p>
+          <p style="margin-bottom:8px;"><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
+          <p style="margin-bottom:8px;"><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
         </div>
+
+        ${ingredientsHTML}
+
+        <hr style="margin:30px 0;border:0;border-top:1px solid #eee;">
+
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div>
+            <b>Quantity:</b>
+            <div style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:5px;margin-left:10px;">
+              <button id="minus" style="padding:5px 12px;border:none;background:none;cursor:pointer;">-</button>
+              <input id="qty" type="number" value="1" min="1"
+                     style="width:50px;text-align:center;border:none;outline:none;font-size:1.1rem;">
+              <button id="plus" style="padding:5px 12px;border:none;background:none;cursor:pointer;">+</button>
+            </div>
+          </div>
+        </div>
+
         <br>
-        <button style="padding:10px 20px;background:black;color:white;border:none;cursor:pointer">
+        <button style="width:100%;max-width:300px;padding:15px;background:black;color:white;border:none;border-radius:10px;font-size:1.2rem;font-weight:bold;cursor:pointer;">
           Add to Cart
         </button>
       </div>
@@ -167,7 +209,10 @@ function renderAdminRow(p) {
     <span class="p-name">${p.ProductName}</span>
     <span>${Number(p.Price).toLocaleString()}</span>
     <span class="brand-text">${p.Brand}</span>
-    <button class="delete-item-btn delete-col" style="display:none;position:absolute;right:20px;top:50%;transform:translateY(-50%);background:#ff4d4d;color:white;border:none;border-radius:50%;width:24px;height:24px;font-weight:bold;cursor:pointer;line-height:24px;padding:0;text-align:center;font-family:monospace">-</button>
+    <button class="delete-item-btn delete-col"
+      style="display:none;position:absolute;right:20px;top:50%;transform:translateY(-50%);
+             background:#ff4d4d;color:white;border:none;border-radius:50%;width:24px;height:24px;
+             font-weight:bold;cursor:pointer;line-height:24px;padding:0;text-align:center;font-family:monospace">-</button>
   `;
 
   row.onclick = () => { window.location.href = `/edit-product/${p.ProductID}`; };
@@ -223,13 +268,13 @@ function initToggleDelete() {
 // ADMIN — EDIT PRODUCT
 // ==========================================
 function populateEditForm(p) {
-  document.getElementById('productId').value    = p.ProductID;
-  document.getElementById('productName').value  = p.ProductName;
-  document.getElementById('price').value        = p.Price;
-  document.getElementById('brand').value        = p.Brand;
-  document.getElementById('mfgDate').value      = p.MFGDate?.split('T')[0] ?? '';
-  document.getElementById('expDate').value      = p.EXPDate?.split('T')[0] ?? '';
-  document.getElementById('ingredients').value  = p.Ingredients?.join(', ') ?? '';
+  document.getElementById('productId').value   = p.ProductID;
+  document.getElementById('productName').value = p.ProductName;
+  document.getElementById('price').value       = p.Price;
+  document.getElementById('brand').value       = p.Brand;
+  document.getElementById('mfgDate').value     = p.MFGDate?.split('T')[0] ?? '';
+  document.getElementById('expDate').value     = p.EXPDate?.split('T')[0] ?? '';
+  document.getElementById('ingredients').value = p.Ingredients?.join(', ') ?? '';
 
   if (p.Images?.[0]?.ImageURL) {
     const img = document.getElementById('previewImage');
@@ -258,7 +303,7 @@ async function initEditProduct() {
   const form = document.getElementById('editForm');
   if (!form) return;
 
-  const id = getIdFromURL();
+  const id = getProductIdFromURL();
   if (!id) { console.log('No product ID in URL'); return; }
 
   try {
@@ -330,7 +375,7 @@ async function initAdminLogin() {
 
 
 // ==========================================
-// SEARCH
+// SEARCH — Filter Overlay
 // ==========================================
 function initSearchOverlay() {
   const container = document.querySelector('.search-container');
@@ -366,11 +411,10 @@ function initExpandableSearch() {
 }
 
 function isSearchValid() {
-  const minPrice = document.getElementById('min-price')?.value.trim();
-  const maxPrice = document.getElementById('max-price')?.value.trim();
-  const brand    = document.getElementById('brand-input')?.value.trim();
+  const minPrice     = document.getElementById('min-price')?.value.trim();
+  const maxPrice     = document.getElementById('max-price')?.value.trim();
+  const brand        = document.getElementById('brand-input')?.value.trim();
   const hasIngredient = [...document.querySelectorAll("input[name='ing']")].some((r) => r.checked);
-
   return minPrice !== '' && maxPrice !== '' && brand !== '' && hasIngredient;
 }
 
@@ -389,8 +433,7 @@ function initSearchValidation() {
     searchBtn.style.cursor  = valid ? 'pointer' : 'not-allowed';
   };
 
-  // Run once on init so button starts disabled
-  updateBtn();
+  updateBtn(); // start disabled
 
   minPrice?.addEventListener('input', updateBtn);
   maxPrice?.addEventListener('input', updateBtn);
@@ -428,12 +471,62 @@ async function runSearch() {
       return;
     }
 
-    renderProductGrid(grid, res.data); 
+    renderProductGrid(grid, res.data);
     overlay?.classList.add('hidden');
   } catch (err) {
     console.error(err);
   }
 }
+
+
+// ==========================================
+// SEARCH — Name Search (header bar)
+// ==========================================
+function initNameSearch() {
+  const nameSearchBtn = document.querySelector('.name-search-btn');
+  const searchInput   = document.querySelector('.search-input');
+  if (!nameSearchBtn || !searchInput) return;
+
+  const runNameSearch = async () => {
+    const name = searchInput.value.trim();
+    if (!name) return;
+
+    const grid = document.getElementById('product-grid');
+
+    // Not on product page → redirect with ?name=
+    if (!grid) {
+      window.location.href = `/product?name=${encodeURIComponent(name)}`;
+      return;
+    }
+
+    // Already on product page → search in place
+    grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Searching...</p>";
+
+    try {
+      const res = await api.searchByName(name);
+
+      if (!res.data?.length) {
+        grid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
+            ❌ No products found for "${name}"
+          </div>`;
+        return;
+      }
+
+      renderProductGrid(grid, res.data);
+      document.getElementById('search-overlay')?.classList.add('hidden');
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = "<p style='grid-column:span 5;text-align:center;color:red'>Error searching products.</p>";
+    }
+  };
+
+  nameSearchBtn.addEventListener('click', runNameSearch);
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runNameSearch();
+  });
+}
+
 
 // ==========================================
 // MAP
@@ -453,7 +546,7 @@ function showStoreLocation(lat, lon) {
 
 
 // ==========================================
-// INIT — entry point
+// INIT — single entry point
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   initProductGrid();
@@ -466,4 +559,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initExpandableSearch();
   initSearchOverlay();
   initSearchValidation();
+  initNameSearch();
 });

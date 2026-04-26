@@ -8,10 +8,10 @@
     --text-muted: #666666;
     --border-color: #000000;
     --search-bg: #e6e6e6;
-    
+
     /* Single Font for entire website */
     --font-main: 'Courier Prime', Courier, monospace;
-    
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -20,7 +20,7 @@
     --radius-xxl: 15px;
     --radius-round: 20px;
     --radius-circle: 50%;
-    
+
     /* Transitions */
     --transition-fast: 0.2s;
 }
@@ -59,6 +59,7 @@ html {
     padding: 10px 40px;
     box-sizing: border-box;
     margin: 8px;
+    position: relative; /* เพิ่มเพื่อให้ลูกที่ตั้งเป็น absolute อ้างอิงตำแหน่งได้ถูกต้อง */
 }
 
 .logo {
@@ -637,13 +638,14 @@ html {
 /* search expanded */
 .search-overlay {
     position: absolute;
-    top: 100px;
+    top: 100%; /* ให้เริ่มแสดงจากขอบล่างของ Header พอดี */
     left: 0;
     width: 100%;
     background: #d9d6d3;
     padding: 30px 10%;
     z-index: 999;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* ป้องกันขนาดล้นจอ */
 }
 
 .hidden {
@@ -664,7 +666,7 @@ html {
     gap: 20px;
 }
 
-.filter-row > label {
+.filter-row>label {
     width: 130px;
     font-size: 1.3rem;
     font-weight: bold;
@@ -919,36 +921,29 @@ body {
     width: 100%;
 }
 
-/* Product ID*/
-.table-header span:nth-child(1) { text-align: center !important; }
-.table-row span:nth-child(1)    { text-align: center !important; }
+.table-header span:nth-child(1),
+.table-row span:nth-child(1) {
+    text-align: center !important;
+}
 
-/* Product name */
 .table-header span:nth-child(2) {
     text-align: left !important;
-    padding-left: 60px !important; 
+    padding-left: 60px !important;
 }
+
 .table-row span:nth-child(2) {
     text-align: left !important;
-    padding-left: 70px !important; 
+    padding-left: 40px !important;
 }
 
-/* Price */
-.table-header span:nth-child(3) {
-    text-align: center !important; 
-}
+.table-header span:nth-child(3),
 .table-row span:nth-child(3) {
     text-align: center !important;
-    padding-left: 20px !important; 
 }
 
-/* Brand */
-.table-header span:nth-child(4) {
-    text-align: center !important; 
-}
+.table-header span:nth-child(4),
 .table-row span:nth-child(4) {
     text-align: center !important;
-    padding-left: 30px !important; 
 }
 
 .status-available {
@@ -1154,23 +1149,23 @@ body {
 
 /* footer */
 footer {
-  background: #111;
-  color: var(--bg-white);
-  padding: 20px;
-  text-align: center;
+    background: #111;
+    color: var(--bg-white);
+    padding: 20px;
+    text-align: center;
 }
 
 .footer-links {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 .footer-links li {
-  display: inline;
-  margin: 0 10px;
+    display: inline;
+    margin: 0 10px;
 }
 
 .footer-links a {
-  color: var(--bg-white);
-  text-decoration: none;
+    color: var(--bg-white);
+    text-decoration: none;
 }
