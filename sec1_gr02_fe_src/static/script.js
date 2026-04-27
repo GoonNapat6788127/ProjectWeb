@@ -73,6 +73,9 @@ const api = {
 
   getIngredients: () =>
     fetch(`${BASE_URL}/ingredients`).then(handleResponse),
+
+  getAdminLogs: () =>
+    fetch(`${BASE_URL}/admin/log`).then(handleResponse),
 };
 
 
@@ -442,6 +445,77 @@ function initToggleDelete() {
 
 
 // ==========================================
+// ADMIN — LOG TABLE
+// ==========================================
+
+/**
+ * Formats a login timestamp for display in the log table.
+ * @param {string} dateStr - ISO date string or MySQL datetime string.
+ * @returns {string} Formatted date and time string.
+ */
+function formatLogTimestamp(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;   // Fallback: show raw string
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins  = String(d.getMinutes()).padStart(2, '0');
+  const secs  = String(d.getSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${mins}:${secs}`;
+}
+
+/**
+ * Creates a single log table row matching the 4-column CSS grid.
+ */
+function renderLogRow(log) {
+  const row = document.createElement('div');
+  row.className = 'table-row log-row';
+
+  // Determine action text based on role — successful logins have a role, failed ones don't.
+  const action = log.myRole ? 'Login Success' : 'Login Failed';
+  const actionClass = log.myRole ? 'log-success' : 'log-failed';
+
+  row.innerHTML = `
+    <span class="log-id">${log.LoginID}</span>
+    <span class="log-action ${actionClass}">${action}</span>
+    <span class="log-username">${log.Username}</span>
+    <span class="log-password">${log.myPassword || '-'}</span>
+    <span class="log-timestamp">${formatLogTimestamp(log.LoginLog)}</span>
+  `;
+
+  return row;
+}
+
+/**
+ * Fetches admin login logs from the API and renders them into the log table.
+ */
+async function initLogTable() {
+  const table = document.getElementById('logTable');
+  if (!table) return;
+
+  try {
+    const res = await api.getAdminLogs();
+    table.innerHTML = '';
+
+    if (!res.data || res.data.length === 0) {
+      table.innerHTML = `
+        <div class="table-empty">
+          <p>No log entries found.</p>
+        </div>`;
+      return;
+    }
+
+    res.data.forEach((log) => table.appendChild(renderLogRow(log)));
+  } catch (err) {
+    console.error('Error loading admin logs:', err);
+    table.innerHTML = "<p style='color:red;padding:20px;text-align:center'>Error loading logs</p>";
+  }
+}
+
+
+// ==========================================
 // ADMIN — EDIT PRODUCT
 // ==========================================
 
@@ -792,4 +866,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initToggleDelete();
   initEditProduct();
   initAddProduct();
+  initLogTable();
 });

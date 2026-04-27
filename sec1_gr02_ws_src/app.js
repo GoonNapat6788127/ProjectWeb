@@ -372,6 +372,7 @@ router.get('/admin/log', (req, res) => {
         SELECT 
             LoginID,
             Username,
+            myPassword,
             LoginLog,
             myRole,
             AdminID
