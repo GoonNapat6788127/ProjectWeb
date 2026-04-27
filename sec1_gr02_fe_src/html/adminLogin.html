@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoonShop - Home</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>GoonShop - Admin Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
@@ -19,7 +19,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" class="search-input" placeholder="Search">
+            <input type="text" class="search-input" placeholder="Search by Name">
         </div>
 
         <div class="header-icons">
@@ -73,56 +73,40 @@
     </header>
 
     <nav class="main-nav">
-        <a href="/home">Home</a>
+        <a href="/">Home</a>
         <a href="/product">Product</a>
         <a href="/team">Team</a>
     </nav>
 
-    <main class="team-list-main">
-        <div class="team-list-content">
-            <div class="team-members-container">
+    <main class="admin-login-wrapper">
+        <div class="admin-login-box">
+            <h1 class="admin-login-title">Admin Sign in</h1>
+            <p class="admin-login-subtitle">Login for admin</p>
 
-                <div class="member-row">
-                    <span class="member-name">Chutchanun Jirapapongpun</span>
-                    <span class="member-id">6788027</span>
-                    <div class="member-profile-icon">
-                        <img src="/Images/ploo.jpg" alt="Chutchanun Jirapapongpun" class="member-photo">
-                    </div>
+            <form id="admin-login-form">
+                <div class="admin-input-group">
+                    <input type="text" id="admin-username" placeholder="Email or phone number" required>
                 </div>
 
-                <div class="member-row">
-                    <span class="member-name">Napat Tayommai</span>
-                    <span class="member-id">6788127</span>
-                    <div class="member-profile-icon">
-                        <img src="/Images/goon.jpg" alt="Napat Tayommai" class="member-photo">
-                    </div>
+                <div class="admin-input-group admin-password-group">
+                    <input type="password" id="admin-password" placeholder="Password" required>
+                    <svg class="admin-eye-icon" id="toggle-password" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
                 </div>
 
-                <div class="member-row">
-                    <span class="member-name">Kritsakorn Thammas</span>
-                    <span class="member-id">6788129</span>
-                    <div class="member-profile-icon">
-                        <img src="/Images/yeen.jpg" alt="Kritsakorn Thammas" class="member-photo">
-                    </div>
+                <div class="admin-forgot-link">
+                    <a href="#">Forget password?</a>
                 </div>
 
-                <div class="member-row">
-                    <span class="member-name">Thanapat Wongthongtham</span>
-                    <span class="member-id">6788145</span>
-                    <div class="member-profile-icon">
-                        <img src="/Images/pong.jpg" alt="Thanapat Wongthongtham" class="member-photo">
-                    </div>
+                <div class="admin-remember-group">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Remember me</label>
                 </div>
 
-                <div class="member-row">
-                    <span class="member-name">Tantikorn Lapkloyma</span>
-                    <span class="member-id">6788241</span>
-                    <div class="member-profile-icon">
-                        <img src="/Images/black.jpg" alt="Tantikorn Lapkloyma" class="member-photo">
-                    </div>
-                </div>
-
-            </div>
+                <button type="submit" class="admin-login-btn">Sign in</button>
+            </form>
         </div>
     </main>
 
@@ -142,6 +126,16 @@
         </div>
     </footer>
 
+    <script>
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('admin-password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Subtle opacity change to show it's clicked
+            this.style.opacity = type === 'text' ? '0.5' : '1';
+        });
+    </script>
     <script src="/script.js"></script>
 
 </body>
