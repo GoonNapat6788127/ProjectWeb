@@ -405,12 +405,39 @@ async function initAdminTable() {
     table.innerHTML = "<p style='color:red'>Error loading products</p>";
   }
 }
+let deleteMode = false;
+
+function resetDeleteMode() {
+  deleteMode = false;
+  document.querySelectorAll('.delete-col').forEach(el => el.style.display = 'none');
+  const btn = document.getElementById('toggleDeleteBtn');
+  if (!btn) return;
+  btn.style.background  = '';
+  btn.style.borderColor = '';
+  btn.style.color       = '';
+}
+
+function initToggleDelete() {
+  const btn = document.getElementById('toggleDeleteBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    deleteMode = !deleteMode;
+    document.querySelectorAll('.delete-col').forEach(el => {
+      el.style.display = deleteMode ? 'flex' : 'none';
+    });
+    btn.style.background  = deleteMode ? '#fcebeb' : '';
+    btn.style.borderColor = deleteMode ? '#f09595' : '';
+    btn.style.color       = deleteMode ? '#a32d2d' : '';
+  });
+}
 
 async function handleDelete(id) {
   try {
     const res = await api.deleteProduct(id);
     if (!res.error) {
       showToast('success', 'Product deleted successfully!');
+      resetDeleteMode();
       initAdminTable();
     }
   } catch (err) {
@@ -678,7 +705,7 @@ async function loadIngredients() {
 
 
 // ==========================================
-// SEARCH — FILTER OVERLAY
+// SEARCH — search OVERLAY
 // ==========================================
 
 function initSearchOverlay() {
@@ -762,7 +789,7 @@ async function runSearch() {
   }
 
   if (filledFields > 0 && filledFields < totalFields) {
-    showToast('warning', `Please fill all ${totalFields} criteria, or leave all blank to show all products.`);
+    showToast('warning', `Please fill all ${totalFields-1} criteria, or leave all blank to show all products.`);
     return;
   }
 

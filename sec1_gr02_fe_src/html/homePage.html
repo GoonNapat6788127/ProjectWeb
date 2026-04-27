@@ -2,47 +2,88 @@
 <html lang="en">
 
 <head>
+    <!-- Meta Setup -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoonShop - Home</title>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="/style.css">
+
+    <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Judson:wght@400;700&display=swap"
         rel="stylesheet">
-    <script type="text/javascript" src="https://api.longdo.com/map3/?key=6cceda7b5cf95dc5adabcabf87e6989e"></script>
+
+    <!-- Map API -->
+    <script type="text/javascript"
+        src="https://api.longdo.com/map3/?key=6cceda7b5cf95dc5adabcabf87e6989e"></script>
 </head>
 
 <body>
+
+    <!-- ================= HEADER ================= -->
     <header class="top-header">
+
+        <!-- Logo -->
         <div class="logo">GoonShop</div>
 
+        <!-- Search Bar -->
         <div class="search-container">
-            <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <input type="text" class="search-input" placeholder="Search by Name">
         </div>
 
+        <!-- Header Icons -->
         <div class="header-icons">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+
+            <!-- Favorite Icon -->
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 
+                    7.78l1.06 1.06L12 21.23l7.78-7.78 
+                    1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                </path>
             </svg>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- Cart Icon -->
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
                 <circle cx="20" cy="21" r="1"></circle>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
             </svg>
-            <a href="/admin" aria-label="Admin Login" style="color: inherit; text-decoration: none; display: flex; align-items: center;">
+
+            <!-- Admin Icon -->
+            <a href="/admin" aria-label="Admin Login"
+                style="color: inherit; text-decoration: none; display: flex; align-items: center;">
                 <svg class="icon user-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"></path>
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 
+                        10 10 10-4.48 10-10S17.52 2 
+                        12 2zm0 3c1.66 0 3 1.34 3 
+                        3s-1.34 3-3 3-3-1.34-3-3 
+                        1.34-3 3-3zm0 14.2c-2.5 
+                        0-4.71-1.28-6-3.22.03-1.99 
+                        4-3.08 6-3.08 1.99 0 5.97 
+                        1.09 6 3.08-1.29 1.94-3.5 
+                        3.22-6 3.22z">
+                    </path>
                 </svg>
             </a>
         </div>
 
+        <!-- Search Overlay -->
         <div id="search-overlay" class="search-overlay hidden">
             <div class="search-panel">
-                <div class="filter-row">
+
+                <!-- Price search -->
+                <div class="search-row">
                     <label>Price</label>
                     <div class="price-range-inputs">
                         <input type="number" id="min-price" placeholder="MIN" min="0">
@@ -50,13 +91,15 @@
                         <input type="number" id="max-price" placeholder="MAX" min="0">
                     </div>
                 </div>
-    
-                <div class="filter-row">
+
+                <!-- Brand search -->
+                <div class="search-row">
                     <label>Brand</label>
                     <input type="text" id="brand-input" placeholder="Search">
                 </div>
-    
-                <div class="filter-row">
+
+                <!-- Ingredient search -->
+                <div class="search-row">
                     <label>Ingredient</label>
                     <div class="checkbox-group">
                         <label><input type="radio" name="ing"> Chicken</label>
@@ -66,142 +109,178 @@
                         <label><input type="radio" name="ing"> Vegetable</label>
                     </div>
                 </div>
-    
+
+                <!-- Search Button -->
                 <div class="search-footer">
                     <button id="search-btn">Search</button>
                 </div>
+
             </div>
         </div>
     </header>
 
+    <!-- ================= NAVIGATION ================= -->
     <nav class="main-nav">
         <a href="/home" class="active">Home</a>
         <a href="/product">Product</a>
         <a href="/team">Team</a>
     </nav>
 
+    <!-- ================= MAIN CONTENT ================= -->
     <main class="home-main">
 
-    <section class="hero-categories">
-        <div class="category-panel">
-            <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80" alt="Premium Salmon">
-            <h2 class="category-title">Premium</h2>
-        </div>
-        <div class="category-panel">
-            <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80" alt="Fresh Shrimp">
-            <h2 class="category-title">Fresh</h2>
-        </div>
-        <div class="category-panel">
-            <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80" alt="Quality Vegetables">
-            <h2 class="category-title">Quality</h2>
-        </div>
-    </section>
-
-    <!-- ABOUT SECTION -->
-    <section class="about-section">
-
-        <div class="about-label">
-            <span class="about-rule"></span>
-            <span class="about-tag">About Us</span>
-            <span class="about-rule"></span>
-        </div>
-
-        <h2 class="about-heading">Frozen Food Retails<br>Business Domain</h2>
-
-        <div class="stat-row">
-            <div class="stat-box">
-                <span class="stat-number">500+</span>
-                <span class="stat-label">Products</span>
+        <!-- Categories Section -->
+        <section class="hero-categories">
+            <div class="category-panel">
+                <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80"
+                    alt="Premium Salmon">
+                <h2 class="category-title">Premium</h2>
             </div>
-            <div class="stat-box stat-box--accent">
-                <span class="stat-number">10+</span>
-                <span class="stat-label">Years of Experience</span>
+
+            <div class="category-panel">
+                <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80"
+                    alt="Fresh Shrimp">
+                <h2 class="category-title">Fresh</h2>
             </div>
-            <div class="stat-box">
-                <span class="stat-number">99%</span>
-                <span class="stat-label">Customer Satisfaction</span>
+
+            <div class="category-panel">
+                <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80"
+                    alt="Quality Vegetables">
+                <h2 class="category-title">Quality</h2>
             </div>
-        </div>
+        </section>
 
-        <div class="about-card">
-            <p class="about-text">
-                Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products
-                preserved through freezing. This inventory typically spans several categories, including raw meats,
-                poultry, seafood, vegetables, fruits, and increasingly popular processed "ready-to-eat" or
-                "ready-to-cook" meals. By maintaining these items at sub-zero temperatures, the business effectively
-                halts microbial growth, thereby preserving nutritional value, maintaining peak freshness, and
-                significantly extending shelf life compared to fresh counterparts.
-            </p>
-        </div>
+        <!-- ================= ABOUT SECTION ================= -->
+        <section class="about-section">
 
-        <div class="feature-chips">
-            <span class="chip">❄ Flash Frozen</span>
-            <span class="chip">✦ Premium Quality</span>
-            <span class="chip">⟳ Year-Round Supply</span>
-            <span class="chip">✔ Food-Safe Certified</span>
-        </div>
+            <div class="about-label">
+                <span class="about-rule"></span>
+                <span class="about-tag">About Us</span>
+                <span class="about-rule"></span>
+            </div>
 
-    </section>
+            <h2 class="about-heading">
+                Frozen Food Retails<br>Business Domain
+            </h2>
 
-    <!-- MAP SECTION -->
-    <section class="map-section-wrapper">
-
-        <div class="about-label">
-            <span class="about-rule"></span>
-            <span class="about-tag">Find Us</span>
-            <span class="about-rule"></span>
-        </div>
-
-        <h2 class="about-heading">Our Store Location</h2>
-
-        <div class="map-card">
-
-            <div class="map-info">
-                <div class="map-info-block">
-                    <span class="map-info-icon">📍</span>
-                    <div>
-                        <p class="map-info-title">Address</p>
-                        <p class="map-info-body">Mahidol University 999 <br>Phuttamonthon 4 Road,<br>Salaya, Nakhon Pathom<br>73170 Thailand</p>
-                    </div>
+            <!-- Stats -->
+            <div class="stat-row">
+                <div class="stat-box">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Products</span>
                 </div>
-                <div class="map-info-block">
-                    <span class="map-info-icon">🕐</span>
-                    <div>
-                        <p class="map-info-title">Opening Hours</p>
-                        <p class="map-info-body">Mon – Fri: 08:00 – 18:00<br>Sat – Sun: 09:00 – 16:00</p>
-                    </div>
+
+                <div class="stat-box stat-box--accent">
+                    <span class="stat-number">10+</span>
+                    <span class="stat-label">Years of Experience</span>
                 </div>
-                <div class="map-info-block">
-                    <span class="map-info-icon">📞</span>
-                    <div>
-                        <p class="map-info-title">Contact</p>
-                        <p class="map-info-body">+66 (0) 2 849-6000</p>
-                    </div>
+
+                <div class="stat-box">
+                    <span class="stat-number">99%</span>
+                    <span class="stat-label">Customer Satisfaction</span>
                 </div>
-                <button class="map-locate-btn" onclick="showStoreLocation(13.7932, 100.3242)">
-                    Get Store Location
-                </button>
             </div>
 
-            <div class="map-embed-wrap">
-                <div class="map" id="map"></div>
+            <!-- Description -->
+            <div class="about-card">
+                <p class="about-text">
+                    Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products
+                    preserved through freezing. This inventory typically spans several categories, including raw meats,
+                    poultry, seafood, vegetables, fruits, and increasingly popular processed "ready-to-eat" or
+                    "ready-to-cook" meals. By maintaining these items at sub-zero temperatures, the business effectively
+                    halts microbial growth, thereby preserving nutritional value, maintaining peak freshness, and
+                    significantly extending shelf life compared to fresh counterparts.
+                </p>
             </div>
 
-        </div>
+            <!-- Features -->
+            <div class="feature-chips">
+                <span class="chip">❄ Flash Frozen</span>
+                <span class="chip">✦ Premium Quality</span>
+                <span class="chip">⟳ Year-Round Supply</span>
+                <span class="chip">✔ Food-Safe Certified</span>
+            </div>
 
-    </section>
+        </section>
 
-</main>
+        <!-- ================= MAP SECTION ================= -->
+        <section class="map-section-wrapper">
 
+            <div class="about-label">
+                <span class="about-rule"></span>
+                <span class="about-tag">Find Us</span>
+                <span class="about-rule"></span>
+            </div>
+
+            <h2 class="about-heading">Our Store Location</h2>
+
+            <div class="map-card">
+
+                <!-- Store Info -->
+                <div class="map-info">
+
+                    <div class="map-info-block">
+                        <span class="map-info-icon">📍</span>
+                        <div>
+                            <p class="map-info-title">Address</p>
+                            <p class="map-info-body">
+                                Mahidol University 999 <br>
+                                Phuttamonthon 4 Road,<br>
+                                Salaya, Nakhon Pathom<br>
+                                73170 Thailand
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="map-info-block">
+                        <span class="map-info-icon">🕐</span>
+                        <div>
+                            <p class="map-info-title">Opening Hours</p>
+                            <p class="map-info-body">
+                                Mon – Fri: 08:00 – 18:00<br>
+                                Sat – Sun: 09:00 – 16:00
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="map-info-block">
+                        <span class="map-info-icon">📞</span>
+                        <div>
+                            <p class="map-info-title">Contact</p>
+                            <p class="map-info-body">+66 (0) 2 849-6000</p>
+                        </div>
+                    </div>
+
+                    <!-- Map Button -->
+                    <button class="map-locate-btn" onclick="showStoreLocation(13.7932, 100.3242)">
+                        Get Store Location
+                    </button>
+                </div>
+
+                <!-- Map Display -->
+                <div class="map-embed-wrap">
+                    <div class="map" id="map"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
     <footer>
         <div class="footer-container">
             <p>© 2026 GoonShop. All rights reserved.</p>
+
+            <!-- Footer Links -->
             <ul class="footer-links">
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Contact</a></li>
                 <li><a href="#">Privacy Policy</a></li>
                 <li><a href="#">Terms of Service</a></li>
             </ul>
+
+            <!-- Contact -->
             <div class="footer-contact">
                 <p>Email: support@goonshop.com</p>
                 <p>Tel: 083-080-1181</p>
@@ -209,7 +288,8 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="/script.js"></script>
-</body>
 
+</body>
 </html>

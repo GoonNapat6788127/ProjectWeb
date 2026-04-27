@@ -161,7 +161,7 @@ router.get('/products', (req, res) => {
 router.get('/products/search', (req, res) => {
     const { name, minPrice, maxPrice, brand, ingredient } = req.query;
 
-    // Build the WHERE clause dynamically based on which filters were supplied.
+    // Build the WHERE clause dynamically based on which searchs were supplied.
     let sql = `
         SELECT p.*, i.ImageID, i.ImageURL
         FROM Product p

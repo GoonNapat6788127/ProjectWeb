@@ -20,16 +20,13 @@ CREATE TABLE Administrator (
 );
 
 INSERT INTO Administrator VALUES
-('AD789401','Admin1','One','0911111111','admin1@mail.com','M'),
-('AD789402','Admin2','Two','0922222222','admin2@mail.com','F'),
-('AD789403','Admin3','Three','0933333333','admin3@mail.com','M'),
-('AD789404','Admin4','Four','0944444444','admin4@mail.com','F'),
-('AD789405','Admin5','Five','0955555555','admin5@mail.com','M'),
-('AD789406','Admin6','Six','0966666666','admin6@mail.com','F'),
-('AD789407','Admin7','Seven','0977777777','admin7@mail.com','M'),
-('AD789408','Admin8','Eight','0988888888','admin8@mail.com','F'),
-('AD789409','Admin9','Nine','0999999999','admin9@mail.com','M'),
-('AD789410','Admin10','Ten','0900000000','admin10@mail.com','F');
+('AD789401','Napat','Tayommai','0830801181','napat.tao@student.mahidol.edu','M'),
+('AD789402','Kritsakorn','Thammas','0884764338','kritsakorn.thm@student.mahidol.edu','M'),
+('AD789403','Tantikorn','Lapkloyma','0124567812','tantikorn.lak@student.mahidol.edu','M'),
+('AD789404','Thanapat','Wongthongtham','0942647851','thanapat.wog@student.mahidol.edu','M'),
+('AD789405','Chutchanun','Jirapapongpun','0237891543','chutchanun.jir@student.mahidol.edu','M'),
+('AD789406','Wudhichart','Sawangphol','0246025789','wudhichart.saw@mahidol.ac.th','M'),
+('AD789407','Jidapa','Kraisangka','0542647852','jidapa.kra@mahidol.ac.th','F');
 
 CREATE TABLE Product (
     ProductID   CHAR(8)         NOT NULL,
@@ -52,11 +49,11 @@ INSERT INTO Product VALUES
 ('PD789403','Frozen Shrimp',200.00,'Seafood','2024-01-01','2025-01-01','AD789403'),
 ('PD789404','French Fries',90.00,'ARO','2024-01-01','2025-01-01','AD789404'),
 ('PD789405','Frozen Pizza',180.00,'ARO','2024-01-01','2025-01-01','AD789405'),
-('PD789406','Beef',290.00,'CP','2024-01-01','2025-01-01','AD789406'),
+('PD789406','Frozen Beef',290.00,'CP','2024-01-01','2025-01-01','AD789406'),
 ('PD789407','Chicken Wing',375.00,'Aro','2024-01-01','2025-01-01','AD789407'),
-('PD789408','Frozen Squid',200.00,'Savepack','2024-01-01','2025-01-01','AD789408'),
-('PD789409','Pork Dumpling',160.00,'CP','2024-01-01','2025-01-01','AD789409'),
-('PD789410','Frozen Donut shrimp',160.00,'CP','2024-01-01','2025-01-01','AD789410');
+('PD789408','Frozen Squid',200.00,'Savepack','2024-01-01','2025-01-01','AD789401'),
+('PD789409','Pork Dumpling',160.00,'CP','2024-01-01','2025-01-01','AD789402'),
+('PD789410','Frozen Donut shrimp',160.00,'CP','2024-01-01','2025-01-01','AD789403');
 
 
 
@@ -82,9 +79,9 @@ INSERT INTO AdminLogin VALUES
 ('LG789405','Admin5','Five','2024-06-03 13:10:05','Staff','AD789405'),
 ('LG789406','Admin6','Six','2024-06-03 14:45:20','Staff','AD789406'),
 ('LG789407','Admin7','Seven','2024-06-04 15:55:33','Manager','AD789407'),
-('LG789408','Admin8','Eight','2024-06-04 16:20:18','Staff','AD789408'),
-('LG789409','Admin9','Nine','2024-06-05 17:40:00','Staff','AD789409'),
-('LG789410','Admin10','Ten','2024-06-05 18:05:12','Manager','AD789410'),
+('LG789408','Admin8','Eight','2024-06-04 16:20:18','Staff','AD789401'),
+('LG789409','Admin9','Nine','2024-06-05 17:40:00','Staff','AD789402'),
+('LG789410','Admin10','Ten','2024-06-05 18:05:12','Manager','AD789403'),
 
 ('LG789411','Admin1','WrongPass','2024-06-06 10:00:00',NULL,NULL),
 ('LG789412','FakeUser','pass123','2024-06-06 10:05:00',NULL,NULL),
