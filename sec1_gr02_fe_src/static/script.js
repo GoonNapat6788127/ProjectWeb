@@ -230,15 +230,28 @@ async function initProductGrid() {
 
   grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Loading products...</p>";
 
-  const name = new URLSearchParams(window.location.search).get('name');
+  const urlParams  = new URLSearchParams(window.location.search);
+  const name       = urlParams.get('name');
+  const minPrice   = urlParams.get('minPrice');
+  const maxPrice   = urlParams.get('maxPrice');
+  const brand      = urlParams.get('brand');
+  const ingredient = urlParams.get('ingredient');
 
   try {
-    const res = name ? await api.searchByName(name) : await api.getProducts();
+    let res;
 
-    if (name && !res.data?.length) {
+    if (name) {
+      res = await api.searchByName(name);
+    } else if (minPrice || maxPrice || brand || ingredient) {
+      res = await api.searchProducts(urlParams.toString());
+    } else {
+      res = await api.getProducts();
+    }
+
+    if (!res.data?.length) {
       grid.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
-          No products found for "${name}"
+          No products found.
         </div>`;
       return;
     }
@@ -628,69 +641,64 @@ function initExpandableSearch() {
 }
 
 function isSearchValid() {
-  const minPrice      = document.getElementById('min-price')?.value.trim();
-  const maxPrice      = document.getElementById('max-price')?.value.trim();
-  const brand         = document.getElementById('brand-input')?.value.trim();
-  const hasIngredient = [...document.querySelectorAll("input[name='ing']")].some((r) => r.checked);
-  return minPrice !== '' && maxPrice !== '' && brand !== '' && hasIngredient;
+  // If a "no criteria" search is allowed to return all results, 
+  // the search is always valid.
+  return true; 
 }
 
 function initSearchValidation() {
-  const searchBtn  = document.getElementById('search-btn');
-  const minPrice   = document.getElementById('min-price');
-  const maxPrice   = document.getElementById('max-price');
-  const brandInput = document.getElementById('brand-input');
+  const searchBtn = document.getElementById('search-btn');
   if (!searchBtn) return;
 
-  const updateBtn = () => {
-    const valid = isSearchValid();
-    searchBtn.disabled      = !valid;
-    searchBtn.style.opacity = valid ? '1' : '0.4';
-    searchBtn.style.cursor  = valid ? 'pointer' : 'not-allowed';
-  };
+  // Keep the button always active so we can trigger the "Please fill all" error
+  searchBtn.disabled = false;
+  searchBtn.style.opacity = '1';
+  searchBtn.style.cursor = 'pointer';
+}
 
-  updateBtn();
-  minPrice?.addEventListener('input', updateBtn);
-  maxPrice?.addEventListener('input', updateBtn);
-  brandInput?.addEventListener('input', updateBtn);
-  document.querySelector('.checkbox-group')?.addEventListener('change', updateBtn);
+function clearSearchInputs() {
+  const minPrice = document.getElementById('min-price');
+  const maxPrice = document.getElementById('max-price');
+  const brandInput = document.getElementById('brand-input');
+  
+  if (minPrice) minPrice.value = '';
+  if (maxPrice) maxPrice.value = '';
+  if (brandInput) brandInput.value = '';
+  
+  // Uncheck all ingredient radio buttons
+  document.querySelectorAll("input[name='ing']").forEach((radio) => {
+    radio.checked = false;
+  });
 }
 
 async function runSearch() {
-  if (!isSearchValid()) return;
+  const minPrice    = document.getElementById('min-price')?.value.trim();
+  const maxPrice    = document.getElementById('max-price')?.value.trim();
+  const brand       = document.getElementById('brand-input')?.value.trim();
+  const selectedIngInput = [...document.querySelectorAll("input[name='ing']")].find(r => r.checked);
+  const selectedIng = selectedIngInput ? selectedIngInput.parentElement.innerText.trim() : '';
 
-  const grid = document.getElementById('product-grid');
-  if (!grid) return;
+  const criteria = [minPrice, maxPrice, brand, selectedIng];
+  const filledFields = criteria.filter(Boolean).length;
+  const totalFields  = criteria.length; // 4
 
-  const params   = new URLSearchParams();
-  const minPrice = document.getElementById('min-price').value;
-  const maxPrice = document.getElementById('max-price').value;
-  const brand    = document.getElementById('brand-input').value.trim();
-  const selected = [...document.querySelectorAll("input[name='ing']")]
-    .find((r) => r.checked)?.parentElement.innerText.trim();
-
-  params.append('minPrice', minPrice);
-  params.append('maxPrice', maxPrice);
-  params.append('brand', brand);
-  if (selected) params.append('ingredient', selected);
-
-  try {
-    const res = await api.searchProducts(params.toString());
-
-    if (!res.data?.length) {
-      grid.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
-          No products match your search.
-        </div>`;
-      return;
-    }
-
-    renderProductGrid(grid, res.data);
-    document.getElementById('search-overlay')?.classList.add('hidden');
-  } catch (err) {
-    showToast('error', 'Search failed. Please try again.');
-    console.error(err);
+  if (filledFields === 0) {
+    window.location.href = '/product';
+    return;
   }
+
+  if (filledFields > 0 && filledFields < totalFields) {
+    showToast('warning', `Please fill all ${totalFields} criteria, or leave all blank to show all products.`);
+    return;
+  }
+
+  const params = new URLSearchParams();
+  params.append('minPrice',   minPrice);
+  params.append('maxPrice',   maxPrice);
+  params.append('brand',      brand);
+  params.append('ingredient', selectedIng);
+
+  window.location.href = `/product?${params.toString()}`;
 }
 
 
@@ -711,6 +719,7 @@ function initNameSearch() {
 
     if (!grid) {
       window.location.href = `/product?name=${encodeURIComponent(name)}`;
+      searchInput.value = '';
       return;
     }
 
