@@ -325,7 +325,11 @@ router.delete('/products/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        await db.promise().query('DELETE FROM Product          WHERE ProductID = ?', [id]);
+        await db.promise().query('DELETE FROM Image WHERE ProductID = ?', [id]);
+        await db.promise().query('DELETE FROM ItemIngredients WHERE ProductID = ?', [id]);
+
+        // แล้วค่อยลบ parent
+        await db.promise().query('DELETE FROM Product WHERE ProductID = ?', [id]);
 
         res.send({ error: false, message: 'Deleted' });
     } catch (err) {
@@ -359,6 +363,36 @@ router.get('/ingredients', (req, res) => {
 // ==========================================
 // ADMIN ROUTES
 // ==========================================
+// ==========================================
+// ADMIN LOG ROUTE
+// ==========================================
+
+router.get('/admin/log', (req, res) => {
+    const sql = `
+        SELECT 
+            LoginID,
+            Username,
+            LoginLog,
+            myRole,
+            AdminID
+        FROM AdminLogin
+        ORDER BY LoginLog DESC
+    `;
+
+    db.query(sql, (error, results) => {
+        if (error) {
+            return res.status(500).send({
+                error: true,
+                message: error.message
+            });
+        }
+
+        res.send({
+            error: false,
+            data: results
+        });
+    });
+});
 
 /**
  * POST /admin/login

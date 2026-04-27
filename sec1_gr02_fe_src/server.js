@@ -65,6 +65,9 @@ app.get('/product-management', (req, res) => {
     sendPage(res, 'productManagement.html');
 });
 
+app.get('/log-admin', (req, res) => {
+    sendPage(res, 'adminLog.html');
+});
 // ==========================================
 // START SERVER
 // ==========================================

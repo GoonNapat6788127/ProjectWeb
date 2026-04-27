@@ -255,67 +255,63 @@ async function initProductGrid() {
 // ==========================================
 
 function renderProductDetail(container, p) {
-  let ingredientsHTML = '';
-  if (p.Ingredients?.length) {
-    const list = Array.isArray(p.Ingredients)
-      ? p.Ingredients
-      : p.Ingredients.split(',').map((s) => s.trim());
+  const list = p.Ingredients?.length
+    ? (Array.isArray(p.Ingredients)
+        ? p.Ingredients
+        : p.Ingredients.split(',').map(s => s.trim()))
+    : [];
 
-    ingredientsHTML = `
-      <div style="margin-top:20px;">
-        <b style="font-size:1.2rem;">Ingredients:</b>
-        <ul style="margin-top:10px;padding-left:20px;line-height:1.6;">
-          ${list.map((ing) => `<li>${ing}</li>`).join('')}
-        </ul>
-      </div>
-    `;
-  }
+  const ingredientsHTML = list.length ? `
+    <div class="description-box" style="margin-top:20px;">
+      <h3>Ingredients</h3>
+      <ul class="desc-content" style="padding-left:18px;margin:0;">
+        ${list.map(ing => `<li>${ing}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
 
   container.innerHTML = `
-    <div style="display:flex;gap:40px;padding:40px;max-width:1200px;margin:0 auto;">
-      <div>
-        <img src="${getImageUrl(p.Images, p.ProductName, '500x500')}"
-             alt="${p.ProductName}"
-             style="width:400px;border:1px solid #ccc;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-      </div>
-      <div style="flex:1;">
-        <h1 style="margin-bottom:10px;">${p.ProductName}</h1>
-        <p style="font-size:24px;font-weight:bold;color:#df6a62;margin-bottom:20px;">${p.Price} Baht</p>
+    <div class="product-detail-container">
 
-        <div style="background:#f9f9f9;padding:20px;border-radius:10px;border:1px solid #eee;">
-          <p style="margin-bottom:8px;"><b>Brand:</b> ${p.Brand}</p>
-          <p style="margin-bottom:8px;"><b>MFG Date:</b> ${formatDate(p.MFGDate)}</p>
-          <p style="margin-bottom:8px;"><b>EXP Date:</b> ${formatDate(p.EXPDate)}</p>
+      <div class="product-gallery">
+        <div class="main-image">
+          <img src="${getImageUrl(p.Images, p.ProductName, '750x750')}"
+               alt="${p.ProductName}">
+        </div>
+      </div>
+
+      <div class="product-info">
+        <h1>${p.ProductName}</h1>
+        <p class="brand-name">Brand: ${p.Brand}</p>
+        <p class="price">${p.Price} Baht</p>
+
+        <p class="quantity-label">Quantity</p>
+        <div class="qty-controls">
+          <button class="qty-btn" id="minus">−</button>
+          <input  class="qty-input" id="qty" type="number" value="1" min="1">
+          <button class="qty-btn" id="plus">+</button>
+        </div>
+
+        <button class="add-to-cart">Add to Cart</button>
+
+        <div class="description-box">
+          <h3>Description</h3>
+          <p class="desc-content">${p.Description ?? ''}</p>
+          <p class="desc-content" style="margin-top:10px;">
+            <b>MFG:</b> ${formatDate(p.MFGDate)} &nbsp;·&nbsp;
+            <b>EXP:</b> ${formatDate(p.EXPDate)}
+          </p>
         </div>
 
         ${ingredientsHTML}
-
-        <hr style="margin:30px 0;border:0;border-top:1px solid #eee;">
-
-        <div style="display:flex;align-items:center;gap:20px;">
-          <div>
-            <b>Quantity:</b>
-            <div style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:5px;margin-left:10px;">
-              <button id="minus" style="padding:5px 12px;border:none;background:none;cursor:pointer;">-</button>
-              <input id="qty" type="number" value="1" min="1"
-                     style="width:50px;text-align:center;border:none;outline:none;font-size:1.1rem;">
-              <button id="plus" style="padding:5px 12px;border:none;background:none;cursor:pointer;">+</button>
-            </div>
-          </div>
-        </div>
-
-        <br>
-        <button style="width:100%;max-width:300px;padding:15px;background:black;color:white;
-                       border:none;border-radius:10px;font-size:1.2rem;font-weight:bold;cursor:pointer;">
-          Add to Cart
-        </button>
       </div>
+
     </div>
   `;
 
   const qty = container.querySelector('#qty');
-  container.querySelector('#plus').onclick  = () => { qty.value = Number(qty.value || 1) + 1; };
-  container.querySelector('#minus').onclick = () => { if (qty.value > 1) qty.value = Number(qty.value) - 1; };
+  container.querySelector('#plus').onclick  = () => { qty.value++; };
+  container.querySelector('#minus').onclick = () => { if (qty.value > 1) qty.value--; };
 }
 
 async function initProductDetail() {
