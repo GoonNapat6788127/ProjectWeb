@@ -5,6 +5,75 @@ const BASE_URL = 'http://localhost:3030';
 
 
 // ==========================================
+// TOAST NOTIFICATIONS
+// ==========================================
+(function () {
+  const container = document.createElement('div');
+  container.id = 'toast-container';
+  container.style.cssText = 'position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none';
+  document.body.appendChild(container);
+
+  const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+
+  window.showToast = function (type = 'info', message, duration = 3500) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type]}</div>
+      <span class="toast-message">${message}</span>
+      <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+    setTimeout(() => removeToast(toast), duration);
+  };
+
+  window.removeToast = function (toast) {
+    if (!toast?.parentElement) return;
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 280);
+  };
+})();
+
+
+
+// ==========================================
+// CONFIRM MODAL
+// ==========================================
+function showConfirm(title, message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;z-index:10000;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:#fff;border-radius:14px;padding:28px 32px;
+      min-width:300px;max-width:400px;width:90%;
+      box-shadow:0 8px 32px rgba(0,0,0,0.18);font-family:sans-serif;
+    ">
+      <p style="font-size:17px;font-weight:600;margin:0 0 8px;color:#111;">${title}</p>
+      <p style="font-size:14px;color:#666;margin:0 0 24px;">${message}</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="confirm-cancel" style="
+          padding:9px 20px;border-radius:8px;border:1px solid #ddd;
+          background:#fff;color:#444;font-size:14px;cursor:pointer;
+        ">Cancel</button>
+        <button id="confirm-ok" style="
+          padding:9px 20px;border-radius:8px;border:none;
+          background:#ff4d4d;color:#fff;font-size:14px;
+          font-weight:500;cursor:pointer;
+        ">Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();
+  overlay.querySelector('#confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+// ==========================================
 // API LAYER
 // ==========================================
 const handleResponse = async (res) => {
@@ -49,15 +118,12 @@ const api = {
 // ==========================================
 // HELPERS
 // ==========================================
-// ==========================================
-// HELPERS
-// ==========================================
 const formatDate = (date) => {
   if (!date) return '-';
   const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
+  const day   = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = String(d.getFullYear()).slice(-2); // Get last 2 digits
+  const year  = String(d.getFullYear()).slice(-2);
   return `${day}/${month}/${year}`;
 };
 
@@ -103,9 +169,8 @@ async function initProductGrid() {
 
   grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Loading products...</p>";
 
-  // Check if we arrived here from a name search
   const params = new URLSearchParams(window.location.search);
-  const name = params.get('name');
+  const name   = params.get('name');
 
   try {
     const res = name ? await api.searchByName(name) : await api.getProducts();
@@ -113,7 +178,7 @@ async function initProductGrid() {
     if (name && !res.data?.length) {
       grid.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
-          ❌ No products found for "${name}"
+          No products found for "${name}"
         </div>`;
       return;
     }
@@ -131,11 +196,10 @@ async function initProductGrid() {
 function renderProductDetail(container, p) {
   let ingredientsHTML = '';
   if (p.Ingredients && p.Ingredients.length > 0) {
-    // Convert string to array if needed
-    const ingredientsList = Array.isArray(p.Ingredients) 
-      ? p.Ingredients 
+    const ingredientsList = Array.isArray(p.Ingredients)
+      ? p.Ingredients
       : p.Ingredients.split(',').map(s => s.trim());
-    
+
     ingredientsHTML = `
       <div style="margin-top:20px;">
         <b style="font-size:1.2rem;">Ingredients:</b>
@@ -212,66 +276,53 @@ async function initProductDetail() {
       : "<h2 style='color:red'>Error loading product</h2>";
   }
 }
+
+
 // ==========================================
 // DATE VALIDATION
 // ==========================================
 function validateDates() {
   const mfgInput = document.getElementById('mfgDate');
   const expInput = document.getElementById('expDate');
-  
   if (!mfgInput || !expInput) return true;
 
   const mfgDate = new Date(mfgInput.value);
   const expDate = new Date(expInput.value);
 
-  // Check if both dates are valid and MFG is not after EXP
-  if (mfgInput.value && expInput.value && mfgDate >= expDate) {
-    return false;
-  }
-
+  if (mfgInput.value && expInput.value && mfgDate >= expDate) return false;
   return true;
 }
 
 function showDateError(message) {
-  // Remove existing error if any
   const existingError = document.querySelector('.date-error-message');
   if (existingError) existingError.remove();
 
-  // Create error message
   const errorDiv = document.createElement('div');
   errorDiv.className = 'date-error-message';
-  errorDiv.style.cssText = 'color: red; font-size: 14px; margin-top: 5px; font-weight: bold;';
+  errorDiv.style.cssText = 'color:red;font-size:14px;margin-top:5px;font-weight:bold;';
   errorDiv.textContent = message;
 
-  // Insert after expDate input
   const expInput = document.getElementById('expDate');
-  if (expInput && expInput.parentElement) {
-    expInput.parentElement.appendChild(errorDiv);
-  }
+  if (expInput?.parentElement) expInput.parentElement.appendChild(errorDiv);
 }
 
 function clearDateError() {
-  const existingError = document.querySelector('.date-error-message');
-  if (existingError) existingError.remove();
+  document.querySelector('.date-error-message')?.remove();
 }
 
 function initDateValidation() {
   const mfgInput = document.getElementById('mfgDate');
   const expInput = document.getElementById('expDate');
-  
   if (!mfgInput || !expInput) return;
 
   const checkDates = () => {
-    if (!mfgInput.value || !expInput.value) {
-      clearDateError();
-      return;
-    }
+    if (!mfgInput.value || !expInput.value) { clearDateError(); return; }
 
     const mfgDate = new Date(mfgInput.value);
     const expDate = new Date(expInput.value);
 
     if (mfgDate >= expDate) {
-      showDateError('⚠️ Manufacturing date must be before expiration date');
+      showDateError('Manufacturing date must be before expiration date');
       expInput.style.borderColor = 'red';
       mfgInput.style.borderColor = 'red';
     } else {
@@ -284,6 +335,7 @@ function initDateValidation() {
   mfgInput.addEventListener('change', checkDates);
   expInput.addEventListener('change', checkDates);
 }
+
 
 // ==========================================
 // ADMIN — PRODUCT TABLE
@@ -308,9 +360,9 @@ function renderAdminRow(p) {
 
   row.querySelector('.delete-item-btn').onclick = (e) => {
     e.stopPropagation();
-    if (confirm(`Are you sure you want to delete ${p.ProductName}?`)) {
+    showConfirm(`Delete "${p.ProductName}"?`, 'This action cannot be undone.', () => {
       handleDelete(p.ProductID);
-    }
+    });
   };
 
   return row;
@@ -333,10 +385,11 @@ async function handleDelete(id) {
   try {
     const res = await api.deleteProduct(id);
     if (!res.error) {
-      alert('✅ Product deleted successfully!');
+      showToast('success', 'Product deleted successfully!');
       initAdminTable();
     }
   } catch (err) {
+    showToast('error', 'Failed to delete product.');
     console.error(err);
   }
 }
@@ -380,7 +433,11 @@ function buildFormData(includeAdmin = true) {
   formData.append('MFGDate',     document.getElementById('mfgDate').value);
   formData.append('EXPDate',     document.getElementById('expDate').value);
   formData.append('Ingredients', document.getElementById('ingredients').value);
-  if (includeAdmin) formData.append('AdminID', 'AD789401');
+
+  if (includeAdmin) {
+    const adminID = localStorage.getItem('adminID');
+    if (adminID) formData.append('AdminID', adminID);
+  }
 
   const file = document.getElementById('imageInput')?.files[0];
   if (file) formData.append('image', file);
@@ -402,92 +459,29 @@ async function initEditProduct() {
     console.error(err);
   }
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.updateProduct(id, buildFormData());
-      if (!res.error) {
-        alert('✅ Updated successfully!');
-        window.location.href = '/product-management';
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  });
-}
-
-// ==========================================
-// ADMIN — EDIT PRODUCT
-// ==========================================
-function populateEditForm(p) {
-  document.getElementById('productId').value   = p.ProductID;
-  document.getElementById('productName').value = p.ProductName;
-  document.getElementById('price').value       = p.Price;
-  document.getElementById('brand').value       = p.Brand;
-  document.getElementById('mfgDate').value     = p.MFGDate?.split('T')[0] ?? '';
-  document.getElementById('expDate').value     = p.EXPDate?.split('T')[0] ?? '';
-  document.getElementById('ingredients').value = p.Ingredients?.join(', ') ?? '';
-
-  if (p.Images?.[0]?.ImageURL) {
-    const img = document.getElementById('previewImage');
-    img.src = p.Images[0].ImageURL;
-    img.style.display = 'block';
-  }
-}
-
-function buildFormData(includeAdmin = true) {
-  const formData = new FormData();
-  formData.append('ProductName', document.getElementById('productName').value);
-  formData.append('Price',       document.getElementById('price').value);
-  formData.append('Brand',       document.getElementById('brand').value);
-  formData.append('MFGDate',     document.getElementById('mfgDate').value);
-  formData.append('EXPDate',     document.getElementById('expDate').value);
-  formData.append('Ingredients', document.getElementById('ingredients').value);
-  if (includeAdmin) formData.append('AdminID', 'AD789401');
-
-  const file = document.getElementById('imageInput')?.files[0];
-  if (file) formData.append('image', file);
-
-  return formData;
-}
-
-async function initEditProduct() {
-  const form = document.getElementById('editForm');
-  if (!form) return;
-
-  const id = getProductIdFromURL();
-  if (!id) { console.log('No product ID in URL'); return; }
-
-  try {
-    const res = await api.getProduct(id);
-    populateEditForm(res.data);
-  } catch (err) {
-    console.error(err);
-  }
-
-  // Initialize date validation
   initDateValidation();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Validate dates before submitting
+
     if (!validateDates()) {
-      alert('⚠️ Manufacturing date must be before expiration date!');
+      showToast('warning', 'Manufacturing date must be before expiration date.');
       return;
     }
 
     try {
       const res = await api.updateProduct(id, buildFormData());
       if (!res.error) {
-        alert('✅ Updated successfully!');
-        window.location.href = '/product-management';
+        showToast('success', 'Product updated successfully!');
+        setTimeout(() => { window.location.href = '/product-management'; }, 1500);
       }
     } catch (err) {
+      showToast('error', 'Failed to update product.');
       console.error(err);
     }
   });
 }
+
 
 // ==========================================
 // ADMIN — ADD PRODUCT
@@ -496,29 +490,29 @@ async function initAddProduct() {
   const form = document.getElementById('addForm');
   if (!form) return;
 
-  // Initialize date validation
   initDateValidation();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Validate dates before submitting
+
     if (!validateDates()) {
-      alert('⚠️ Manufacturing date must be before expiration date!');
+      showToast('warning', 'Manufacturing date must be before expiration date.');
       return;
     }
 
     try {
       const res = await api.createProduct(buildFormData());
       if (!res.error) {
-        alert('✅ Product added!');
-        window.location.href = '/product-management';
+        showToast('success', 'Product added successfully!');
+        setTimeout(() => { window.location.href = '/product-management'; }, 1500);
       }
     } catch (err) {
+      showToast('error', 'Failed to add product.');
       console.error(err);
     }
   });
 }
+
 
 // ==========================================
 // ADMIN — LOGIN
@@ -534,11 +528,11 @@ async function initAdminLogin() {
 
     try {
       const data = await api.adminLogin({ Username: username, myPassword: password });
-      alert('Login success!');
       localStorage.setItem('adminID', data.AdminID);
-      window.location.href = '/product-management';
+      showToast('success', 'Login successful! Redirecting...');
+      setTimeout(() => { window.location.href = '/product-management'; }, 1500);
     } catch {
-      alert('Login failed. Please check your credentials.');
+      showToast('error', 'Login failed. Please check your credentials.');
     }
   });
 }
@@ -553,24 +547,18 @@ async function loadIngredients() {
 
   try {
     const res = await api.getIngredients();
-    
+
     if (res.data && res.data.length > 0) {
-      // Clear existing hardcoded ingredients
       checkboxGroup.innerHTML = '';
-      
-      // Render ingredients dynamically
       res.data.forEach(ingredient => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="radio" name="ing"> ${ingredient}`;
         checkboxGroup.appendChild(label);
       });
-
-      // Re-initialize validation listeners for the new radio buttons
       initSearchValidation();
     }
   } catch (err) {
     console.error('Error loading ingredients:', err);
-    // Keep hardcoded values as fallback if they exist
   }
 }
 
@@ -612,9 +600,9 @@ function initExpandableSearch() {
 }
 
 function isSearchValid() {
-  const minPrice     = document.getElementById('min-price')?.value.trim();
-  const maxPrice     = document.getElementById('max-price')?.value.trim();
-  const brand        = document.getElementById('brand-input')?.value.trim();
+  const minPrice      = document.getElementById('min-price')?.value.trim();
+  const maxPrice      = document.getElementById('max-price')?.value.trim();
+  const brand         = document.getElementById('brand-input')?.value.trim();
   const hasIngredient = [...document.querySelectorAll("input[name='ing']")].some((r) => r.checked);
   return minPrice !== '' && maxPrice !== '' && brand !== '' && hasIngredient;
 }
@@ -627,25 +615,24 @@ function initSearchValidation() {
   if (!searchBtn) return;
 
   const updateBtn = () => {
-    const ingRadios = document.querySelectorAll("input[name='ing']"); // Get fresh list
+    const ingRadios     = document.querySelectorAll("input[name='ing']");
     const hasIngredient = [...ingRadios].some((r) => r.checked);
-    const minPriceVal = minPrice?.value.trim();
-    const maxPriceVal = maxPrice?.value.trim();
-    const brandVal = brandInput?.value.trim();
-    
-    const valid = minPriceVal !== '' && maxPriceVal !== '' && brandVal !== '' && hasIngredient;
-    searchBtn.disabled = !valid;
+    const valid =
+      minPrice?.value.trim() !== '' &&
+      maxPrice?.value.trim() !== '' &&
+      brandInput?.value.trim() !== '' &&
+      hasIngredient;
+
+    searchBtn.disabled      = !valid;
     searchBtn.style.opacity = valid ? '1' : '0.4';
     searchBtn.style.cursor  = valid ? 'pointer' : 'not-allowed';
   };
 
-  updateBtn(); // start disabled
+  updateBtn();
 
   minPrice?.addEventListener('input', updateBtn);
   maxPrice?.addEventListener('input', updateBtn);
   brandInput?.addEventListener('input', updateBtn);
-  
-  // Use event delegation for dynamically added radio buttons
   document.querySelector('.checkbox-group')?.addEventListener('change', updateBtn);
 }
 
@@ -674,7 +661,7 @@ async function runSearch() {
     if (!res.data?.length) {
       grid.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
-          ❌ Not Match
+          No products match your search.
         </div>`;
       return;
     }
@@ -682,6 +669,7 @@ async function runSearch() {
     renderProductGrid(grid, res.data);
     overlay?.classList.add('hidden');
   } catch (err) {
+    showToast('error', 'Search failed. Please try again.');
     console.error(err);
   }
 }
@@ -692,8 +680,7 @@ async function runSearch() {
 // ==========================================
 function initNameSearch() {
   const searchInput = document.querySelector('.search-input');
-  const searchIcon = document.querySelector('.icon-search');
-  
+  const searchIcon  = document.querySelector('.icon-search');
   if (!searchInput) return;
 
   const runNameSearch = async () => {
@@ -702,13 +689,11 @@ function initNameSearch() {
 
     const grid = document.getElementById('product-grid');
 
-    // ถ้าไม่ได้อยู่ที่หน้าสินค้า (เช่นหน้า Home) ให้เปลี่ยนหน้าไปพร้อมส่งค่าค้นหา
     if (!grid) {
       window.location.href = `/product?name=${encodeURIComponent(name)}`;
       return;
     }
 
-    // ถ้าอยู่ที่หน้าสินค้าแล้ว ให้ค้นหาและแสดงผลทันที
     grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Searching...</p>";
 
     try {
@@ -717,7 +702,7 @@ function initNameSearch() {
       if (!res.data || res.data.length === 0) {
         grid.innerHTML = `
           <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
-            ❌ No products found for "${name}"
+            No products found for "${name}"
           </div>`;
         return;
       }
@@ -725,19 +710,15 @@ function initNameSearch() {
       renderProductGrid(grid, res.data);
       document.getElementById('search-overlay')?.classList.add('hidden');
     } catch (err) {
+      showToast('error', 'Search failed. Please try again.');
       console.error(err);
       grid.innerHTML = "<p style='grid-column:span 5;text-align:center;color:red'>Error searching products.</p>";
     }
   };
 
-  // คลิกที่ไอคอนแว่นขยายเพื่อค้นหา
   searchIcon?.addEventListener('click', runNameSearch);
-  searchIcon && (searchIcon.style.cursor = 'pointer');
-
-  // กด Enter เพื่อค้นหา
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') runNameSearch();
-  });
+  if (searchIcon) searchIcon.style.cursor = 'pointer';
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runNameSearch(); });
 }
 
 
@@ -771,7 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminLogin();
   initExpandableSearch();
   initSearchOverlay();
-  loadIngredients();      // Load ingredients dynamically
-  initSearchValidation(); // Initialize after ingredients are loaded
+  loadIngredients();
+  initSearchValidation();
   initNameSearch();
 });

@@ -51,44 +51,6 @@ function uploadToCloudinary(buffer) {
 }
 
 // ==============================
-// CUSTOMER APIs
-// ==============================
-router.get('/customers', (req, res) => {
-    db.query("SELECT * FROM Customer", (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        res.send({ error: false, data: results, message: 'Customer list' });
-    });
-});
-
-router.get('/customers/:id', (req, res) => {
-    const id = req.params.id;
-    db.query("SELECT * FROM Customer WHERE CustomerID = ?", [id], (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        if (results.length === 0) return res.status(404).send({ error: true, message: 'Customer not found' });
-        res.send({ error: false, data: results[0], message: 'Customer retrieved' });
-    });
-});
-
-router.post('/customers', (req, res) => {
-    const { FName, LName, PhoneNumber, Email, Gender, City, Province, SubDistrict } = req.body;
-    if (!FName || !LName || !PhoneNumber || !Email) return res.status(400).send({ error: true, message: 'Missing fields' });
-
-    const getLastIdSQL = `SELECT MAX(CAST(SUBSTRING(CustomerID, 3) AS UNSIGNED)) AS lastId FROM Customer`;
-    db.query(getLastIdSQL, (error, result) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        const nextId = (result[0].lastId || 0) + 1;
-        const newID = 'CT' + nextId;
-        db.query("INSERT INTO Customer VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [newID, FName, LName, PhoneNumber, Email, Gender, City, Province, SubDistrict],
-            (err) => {
-                if (err) return res.status(500).send({ error: true, message: err.message });
-                res.send({ error: false, CustomerID: newID, message: 'Customer created' });
-            }
-        );
-    });
-});
-
-// ==============================
 // PRODUCT APIs
 // ==============================
 
@@ -104,7 +66,8 @@ router.get('/products', (req, res) => {
         const products = {};
         results.forEach(row => {
             if (!products[row.ProductID]) {
-                products[row.ProductID] = { ...row, Images: [] };
+                const { ImageID, ImageURL, ...productFields } = row;
+                products[row.ProductID] = { ...productFields, Images: [] };
             }
             if (row.ImageID) products[row.ProductID].Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
         });
@@ -133,7 +96,8 @@ router.get('/products/search', (req, res) => {
         const products = {};
         results.forEach(row => {
             if (!products[row.ProductID]) {
-                products[row.ProductID] = { ...row, Images: [] };
+                const { ImageID, ImageURL, ...productFields } = row;
+                products[row.ProductID] = { ...productFields, Images: [] };
             }
             if (row.ImageID) products[row.ProductID].Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
         });
@@ -154,7 +118,8 @@ router.get('/products/:id', (req, res) => {
         if (error) return res.status(500).send({ error: true, message: error.message });
         if (results.length === 0) return res.status(404).send({ error: true, message: 'Not found' });
 
-        const p = { ...results[0], Images: [], Ingredients: [] };
+        const { ImageID, ImageURL, ...productFields } = results[0];
+        const p = { ...productFields, Images: [], Ingredients: [] };
         results.forEach(row => {
             if (row.ImageID && !p.Images.find(img => img.ImageID === row.ImageID))
                 p.Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
@@ -262,26 +227,77 @@ router.delete('/products/:id', (req, res) => {
 // ==============================
 router.post('/admin/login', (req, res) => {
     const { Username, myPassword } = req.body;
-    if (!Username || !myPassword) return res.status(400).send({ error: true, message: 'Missing username or password' });
 
-    // Fetch by username only, then compare password in JS for strict case-sensitivity
-    // (MySQL string comparison is case-insensitive by default)
-    db.query("SELECT * FROM Administrator WHERE BINARY Username = ?", [Username], (err, results) => {
-        if (err) return res.status(500).send({ error: true, message: err.message });
+    if (!Username || !myPassword) {
+        return res.status(400).send({
+            error: true,
+            message: 'Missing username or password'
+        });
+    }
 
-        if (results.length === 0) {
-            return res.status(401).send({ error: true, message: 'Invalid credentials' });
+    db.query(
+        "SELECT * FROM Administrator WHERE BINARY Username = ?",
+        [Username],
+        (err, results) => {
+            if (err) return res.status(500).send({ error: true, message: err.message });
+
+            // 🔑 Generate incremental LoginID
+            const getLastIdSQL = `
+                SELECT MAX(CAST(SUBSTRING(LoginID, 3) AS UNSIGNED)) AS lastId 
+                FROM AdminLogin
+            `;
+
+            db.query(getLastIdSQL, (idErr, idResult) => {
+                if (idErr) {
+                    console.error("❌ ID ERROR:", idErr);
+                    return res.status(500).send({ error: true, message: idErr.message });
+                }
+
+                const nextId = (idResult[0].lastId || 789400) + 1;
+                const loginID = 'LG' + nextId;
+
+                // ❌ USER NOT FOUND
+                if (results.length === 0) {
+                    db.query(
+                        `INSERT INTO AdminLogin 
+                        (LoginID, Username, myPassword, LoginLog, myRole, AdminID) 
+                        VALUES (?, ?, ?, NOW(), NULL, NULL)`,
+                        [loginID, Username, myPassword]
+                    );
+
+                    return res.status(401).send({ error: true, message: 'Invalid credentials' });
+                }
+
+                const admin = results[0];
+
+                // ❌ WRONG PASSWORD
+                if (admin.myPassword !== myPassword) {
+                    db.query(
+                        `INSERT INTO AdminLogin 
+                        (LoginID, Username, myPassword, LoginLog, myRole, AdminID) 
+                        VALUES (?, ?, ?, NOW(), NULL, NULL)`,
+                        [loginID, Username, myPassword]
+                    );
+
+                    return res.status(401).send({ error: true, message: 'Invalid credentials' });
+                }
+
+                // ✅ SUCCESS
+                db.query(
+                    `INSERT INTO AdminLogin 
+                    (LoginID, Username, myPassword, LoginLog, myRole, AdminID) 
+                    VALUES (?, ?, ?, NOW(), ?, ?)`,
+                    [loginID, Username, myPassword, 'Admin', admin.AdminID]
+                );
+
+                return res.send({
+                    error: false,
+                    message: 'Login success',
+                    AdminID: admin.AdminID
+                });
+            });
         }
-
-        const admin = results[0];
-
-        // Strict case-sensitive password check in JavaScript
-        if (admin.myPassword !== myPassword) {
-            return res.status(401).send({ error: true, message: 'Invalid credentials' });
-        }
-
-        res.send({ error: false, message: 'Login success', AdminID: admin.AdminID });
-    });
+    );
 });
 
 router.get('/ingredients', (req, res) => {
