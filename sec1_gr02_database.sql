@@ -10,8 +10,8 @@ SELECT * FROM ItemIngredients;
 
 CREATE TABLE Administrator (
     AdminID 	CHAR(8)			NOT NULL,
-    Username 		VARCHAR(50)		NOT NULL,
-    myPassword 		VARCHAR(50)		NOT NULL,
+    Username 	VARCHAR(50)		NOT NULL,
+    myPassword 	VARCHAR(50)		NOT NULL,
     PhoneNumber VARCHAR(10)		NOT NULL,
     Email 		VARCHAR(100)	NOT NULL,
     Gender 		CHAR(1)			,
@@ -72,16 +72,13 @@ CREATE TABLE AdminLogin (
 );
 
 INSERT INTO AdminLogin VALUES
-('LG789401','Admin1','One','2024-06-01 08:15:23','Manager','AD789401'),
-('LG789402','Admin2','Two','2024-06-01 09:05:10','Staff','AD789402'),
-('LG789403','Admin3','Three','2024-06-02 10:22:45','Staff','AD789403'),
-('LG789404','Admin4','Four','2024-06-02 11:30:55','Manager','AD789404'),
-('LG789405','Admin5','Five','2024-06-03 13:10:05','Staff','AD789405'),
-('LG789406','Admin6','Six','2024-06-03 14:45:20','Staff','AD789406'),
-('LG789407','Admin7','Seven','2024-06-04 15:55:33','Manager','AD789407'),
-('LG789408','Admin8','Eight','2024-06-04 16:20:18','Staff','AD789401'),
-('LG789409','Admin9','Nine','2024-06-05 17:40:00','Staff','AD789402'),
-('LG789410','Admin10','Ten','2024-06-05 18:05:12','Manager','AD789403'),
+('LG789401','Napat','Tayommai','2024-06-01 08:15:23','Manager','AD789401'),
+('LG789402','Kritsakorn','Thammas','2024-06-01 09:05:10','Staff','AD789402'),
+('LG789403','Tantikorn','Lapkloyma','2024-06-02 10:22:45','Staff','AD789403'),
+('LG789404','Thanapat','Wongthongtham','2024-06-02 11:30:55','Manager','AD789404'),
+('LG789405','Chutchanun','Jirapapongpun','2024-06-03 13:10:05','Staff','AD789405'),
+('LG789406','Wudhichart','Sawangphol','2024-06-03 14:45:20','Staff','AD789406'),
+('LG789407','Jidapa','Kraisangka','2024-06-04 15:55:33','Manager','AD789407'),
 
 ('LG789411','Admin1','WrongPass','2024-06-06 10:00:00',NULL,NULL),
 ('LG789412','FakeUser','pass123','2024-06-06 10:05:00',NULL,NULL),

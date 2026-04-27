@@ -2,13 +2,14 @@
 // CONFIG
 // ==========================================
 
-const BASE_URL = 'http://localhost:3030';
+const BASE_URL = 'http://localhost:3030'; // backend base URL
 
 
 // ==========================================
 // HELPERS
 // ==========================================
 
+// Format date to DD/MM/YY
 const formatDate = (date) => {
   if (!date) return '-';
   const d     = new Date(date);
@@ -18,64 +19,47 @@ const formatDate = (date) => {
   return `${day}/${month}/${year}`;
 };
 
+// Get image or placeholder
 const getImageUrl = (images, name, size = '200x200') =>
   images?.[0]?.ImageURL ??
   `https://placehold.co/${size}/FFFFFF/DDDDDD?text=${encodeURIComponent(name)}`;
 
+// Get last URL path segment
 const getIdFromURL = () => {
   const parts = window.location.pathname.split('/').filter(Boolean);
   return parts[parts.length - 1] || null;
 };
 
-const getProductIdFromURL = () => {
-  if (!window.location.pathname.includes('edit-product')) return null;
-  return getIdFromURL();
-};
+// Get ID only on edit page
+const getProductIdFromURL = () =>
+  window.location.pathname.includes('edit-product') ? getIdFromURL() : null;
 
 
 // ==========================================
 // API LAYER
 // ==========================================
 
+// Throw on non-2xx response
 const handleResponse = async (res) => {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 };
 
 const api = {
-  getProducts: () =>
-    fetch(`${BASE_URL}/products`).then(handleResponse),
-
-  getProduct: (id) =>
-    fetch(`${BASE_URL}/products/${id}`).then(handleResponse),
-
-  searchProducts: (params) =>
-    fetch(`${BASE_URL}/products/search?${params}`).then(handleResponse),
-
-  searchByName: (name) =>
-    fetch(`${BASE_URL}/products/search?name=${encodeURIComponent(name)}`).then(handleResponse),
-
-  createProduct: (formData) =>
-    fetch(`${BASE_URL}/products`, { method: 'POST', body: formData }).then(handleResponse),
-
-  updateProduct: (id, formData) =>
-    fetch(`${BASE_URL}/products/${id}`, { method: 'PUT', body: formData }).then(handleResponse),
-
-  deleteProduct: (id) =>
-    fetch(`${BASE_URL}/products/${id}`, { method: 'DELETE' }).then(handleResponse),
-
-  adminLogin: (credentials) =>
-    fetch(`${BASE_URL}/admin/login`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(credentials),
-    }).then(handleResponse),
-
-  getIngredients: () =>
-    fetch(`${BASE_URL}/ingredients`).then(handleResponse),
-
-  getAdminLogs: () =>
-    fetch(`${BASE_URL}/admin/log`).then(handleResponse),
+  getProducts:    ()         => fetch(`${BASE_URL}/products`).then(handleResponse),                                                         // fetch all products
+  getProduct:     (id)       => fetch(`${BASE_URL}/products/${id}`).then(handleResponse),                                                   // fetch single product
+  searchProducts: (params)   => fetch(`${BASE_URL}/products/search?${params}`).then(handleResponse),                                        // search with filters
+  searchByName:   (name)     => fetch(`${BASE_URL}/products/search?name=${encodeURIComponent(name)}`).then(handleResponse),                 // search by name
+  createProduct:  (formData) => fetch(`${BASE_URL}/products`, { method: 'POST', body: formData }).then(handleResponse),                     // add new product
+  updateProduct:  (id, formData) => fetch(`${BASE_URL}/products/${id}`, { method: 'PUT', body: formData }).then(handleResponse),            // update existing product
+  deleteProduct:  (id)       => fetch(`${BASE_URL}/products/${id}`, { method: 'DELETE' }).then(handleResponse),                             // remove product
+  adminLogin:     (credentials) => fetch(`${BASE_URL}/admin/login`, {                                                                       // authenticate admin
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(credentials),
+  }).then(handleResponse),
+  getIngredients: () => fetch(`${BASE_URL}/ingredients`).then(handleResponse),                                                              // fetch ingredient list
+  getAdminLogs:   () => fetch(`${BASE_URL}/admin/log`).then(handleResponse),                                                                // fetch login logs
 };
 
 
@@ -84,6 +68,7 @@ const api = {
 // ==========================================
 
 (function initToasts() {
+  // Create fixed toast container
   const container = document.createElement('div');
   container.id = 'toast-container';
   container.style.cssText =
@@ -92,7 +77,8 @@ const api = {
 
   const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
 
-  window.showToast = function (type = 'info', message, duration = 3500) {
+  // Show toast then auto-remove
+  window.showToast = (type = 'info', message, duration = 3500) => {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
@@ -105,7 +91,8 @@ const api = {
     setTimeout(() => removeToast(toast), duration);
   };
 
-  window.removeToast = function (toast) {
+  // Fade out then remove toast
+  window.removeToast = (toast) => {
     if (!toast?.parentElement) return;
     toast.classList.add('hide');
     setTimeout(() => toast.remove(), 280);
@@ -117,6 +104,7 @@ const api = {
 // CONFIRM MODAL
 // ==========================================
 
+// Show delete confirm dialog
 function showConfirm(title, message, onConfirm) {
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -146,9 +134,9 @@ function showConfirm(title, message, onConfirm) {
   `;
 
   document.body.appendChild(overlay);
-  overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();
-  overlay.querySelector('#confirm-ok').onclick     = () => { overlay.remove(); onConfirm(); };
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();           // cancel removes modal
+  overlay.querySelector('#confirm-ok').onclick     = () => { overlay.remove(); onConfirm(); }; // confirm runs callback
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };            // click outside closes
 }
 
 
@@ -156,16 +144,15 @@ function showConfirm(title, message, onConfirm) {
 // DATE VALIDATION
 // ==========================================
 
+// Returns false if MFG >= EXP
 function validateDates() {
   const mfgInput = document.getElementById('mfgDate');
   const expInput = document.getElementById('expDate');
-  if (!mfgInput || !expInput) return true;
-  const mfgDate = new Date(mfgInput.value);
-  const expDate = new Date(expInput.value);
-  if (mfgInput.value && expInput.value && mfgDate >= expDate) return false;
-  return true;
+  if (!mfgInput || !expInput) return true; // skip if fields missing
+  return !(mfgInput.value && expInput.value && new Date(mfgInput.value) >= new Date(expInput.value));
 }
 
+// Show red error below EXP field
 function showDateError(message) {
   document.querySelector('.date-error-message')?.remove();
   const errorDiv = document.createElement('div');
@@ -175,31 +162,33 @@ function showDateError(message) {
   document.getElementById('expDate')?.parentElement?.appendChild(errorDiv);
 }
 
+// Remove date error message
 function clearDateError() {
   document.querySelector('.date-error-message')?.remove();
 }
 
+// Validate dates on field change
 function initDateValidation() {
   const mfgInput = document.getElementById('mfgDate');
   const expInput = document.getElementById('expDate');
   if (!mfgInput || !expInput) return;
 
   const checkDates = () => {
-    if (!mfgInput.value || !expInput.value) { clearDateError(); return; }
-    const mfgDate = new Date(mfgInput.value);
-    const expDate = new Date(expInput.value);
-    if (mfgDate >= expDate) {
+    if (!mfgInput.value || !expInput.value) { clearDateError(); return; } // wait for both values
+
+    const isInvalid = new Date(mfgInput.value) >= new Date(expInput.value);
+    if (isInvalid) {
       showDateError('Manufacturing date must be before expiration date');
-      mfgInput.style.borderColor = 'red';
+      mfgInput.style.borderColor = 'red'; // highlight invalid fields
       expInput.style.borderColor = 'red';
     } else {
       clearDateError();
-      mfgInput.style.borderColor = '';
+      mfgInput.style.borderColor = ''; // reset to default
       expInput.style.borderColor = '';
     }
   };
 
-  mfgInput.addEventListener('change', checkDates);
+  mfgInput.addEventListener('change', checkDates); // recheck on change
   expInput.addEventListener('change', checkDates);
 }
 
@@ -208,6 +197,7 @@ function initDateValidation() {
 // UI — PRODUCT GRID
 // ==========================================
 
+// Render product cards into grid
 function renderProductGrid(grid, products) {
   if (!products?.length) {
     grid.innerHTML = "<p style='grid-column:span 5;text-align:center'>No products found.</p>";
@@ -227,12 +217,14 @@ function renderProductGrid(grid, products) {
   `).join('');
 }
 
+// Fetch products based on URL params
 async function initProductGrid() {
   const grid = document.getElementById('product-grid');
   if (!grid) return;
 
   grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Loading products...</p>";
 
+  // Read search params from URL
   const urlParams  = new URLSearchParams(window.location.search);
   const name       = urlParams.get('name');
   const minPrice   = urlParams.get('minPrice');
@@ -242,13 +234,12 @@ async function initProductGrid() {
 
   try {
     let res;
-
     if (name) {
-      res = await api.searchByName(name);
+      res = await api.searchByName(name);                      // name search takes priority
     } else if (minPrice || maxPrice || brand || ingredient) {
-      res = await api.searchProducts(urlParams.toString());
+      res = await api.searchProducts(urlParams.toString());    // apply advanced searchs
     } else {
-      res = await api.getProducts();
+      res = await api.getProducts();                           // no searchs, show all
     }
 
     if (!res.data?.length) {
@@ -270,18 +261,20 @@ async function initProductGrid() {
 // UI — PRODUCT DETAIL
 // ==========================================
 
+// Build detail page HTML
 function renderProductDetail(container, p) {
-  const list = p.Ingredients?.length
+  // Normalise ingredients to array
+  const ingredientList = p.Ingredients?.length
     ? (Array.isArray(p.Ingredients)
         ? p.Ingredients
-        : p.Ingredients.split(',').map(s => s.trim()))
+        : p.Ingredients.split(',').map((s) => s.trim()))
     : [];
 
-  const ingredientsHTML = list.length ? `
+  const ingredientsHTML = ingredientList.length ? `
     <div class="description-box" style="margin-top:20px;">
       <h3>Ingredients</h3>
       <ul class="desc-content" style="padding-left:18px;margin:0;">
-        ${list.map(ing => `<li>${ing}</li>`).join('')}
+        ${ingredientList.map((ing) => `<li>${ing}</li>`).join('')}
       </ul>
     </div>
   ` : '';
@@ -325,11 +318,13 @@ function renderProductDetail(container, p) {
     </div>
   `;
 
+  // Wire quantity stepper buttons
   const qty = container.querySelector('#qty');
   container.querySelector('#plus').onclick  = () => { qty.value++; };
-  container.querySelector('#minus').onclick = () => { if (qty.value > 1) qty.value--; };
+  container.querySelector('#minus').onclick = () => { if (qty.value > 1) qty.value--; }; // min 1
 }
 
+// Fetch and render product detail
 async function initProductDetail() {
   const container = document.getElementById('detail-container');
   if (!container) return;
@@ -345,6 +340,7 @@ async function initProductDetail() {
 
     renderProductDetail(container, res.data);
   } catch (err) {
+    // Show 404 message or generic error
     container.innerHTML = err.message === 'HTTP 404'
       ? '<h2>Product not found</h2>'
       : "<h2 style='color:red'>Error loading product</h2>";
@@ -356,17 +352,12 @@ async function initProductDetail() {
 // ADMIN — PRODUCT TABLE
 // ==========================================
 
-/**
- * Creates a single admin table row matching the updated 5-column CSS grid.
- * The delete button sits in its own grid column — no absolute positioning needed.
- */
+// Build single admin table row
 function renderAdminRow(p) {
   const row = document.createElement('div');
   row.className = 'table-row';
   row.style.cursor = 'pointer';
 
-  // Wrap the brand in a .brand-text span so the CSS pill style applies.
-  // The delete button has no inline styles — all appearance comes from CSS.
   row.innerHTML = `
     <span>${p.ProductID}</span>
     <span class="p-name">${p.ProductName}</span>
@@ -375,14 +366,14 @@ function renderAdminRow(p) {
     <button class="delete-item-btn delete-col" style="display:none">−</button>
   `;
 
-  // Clicking the row navigates to the edit page.
+  // Row click navigates to edit
   row.addEventListener('click', () => {
     window.location.href = `/edit-product/${p.ProductID}`;
   });
 
-  // Clicking the delete button shows a confirm dialog (does not navigate).
+  // Delete button shows confirm dialog
   row.querySelector('.delete-item-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // prevent row click
     showConfirm(
       `Delete "${p.ProductName}"?`,
       'This action cannot be undone.',
@@ -393,6 +384,7 @@ function renderAdminRow(p) {
   return row;
 }
 
+// Fetch and render all rows
 async function initAdminTable() {
   const table = document.getElementById('productTable');
   if (!table) return;
@@ -405,40 +397,15 @@ async function initAdminTable() {
     table.innerHTML = "<p style='color:red'>Error loading products</p>";
   }
 }
-let deleteMode = false;
 
-function resetDeleteMode() {
-  deleteMode = false;
-  document.querySelectorAll('.delete-col').forEach(el => el.style.display = 'none');
-  const btn = document.getElementById('toggleDeleteBtn');
-  if (!btn) return;
-  btn.style.background  = '';
-  btn.style.borderColor = '';
-  btn.style.color       = '';
-}
-
-function initToggleDelete() {
-  const btn = document.getElementById('toggleDeleteBtn');
-  if (!btn) return;
-
-  btn.addEventListener('click', () => {
-    deleteMode = !deleteMode;
-    document.querySelectorAll('.delete-col').forEach(el => {
-      el.style.display = deleteMode ? 'flex' : 'none';
-    });
-    btn.style.background  = deleteMode ? '#fcebeb' : '';
-    btn.style.borderColor = deleteMode ? '#f09595' : '';
-    btn.style.color       = deleteMode ? '#a32d2d' : '';
-  });
-}
-
+// Delete product then refresh table
 async function handleDelete(id) {
   try {
     const res = await api.deleteProduct(id);
     if (!res.error) {
       showToast('success', 'Product deleted successfully!');
-      resetDeleteMode();
-      initAdminTable();
+      resetDeleteMode();  // hide delete buttons
+      initAdminTable();   // reload rows
     }
   } catch (err) {
     showToast('error', 'Failed to delete product.');
@@ -446,10 +413,17 @@ async function handleDelete(id) {
   }
 }
 
-/**
- * Toggles the delete buttons in the admin table.
- * Uses "flex" (not "inline-block") to match the CSS grid cell centering.
- */
+// Hide all delete buttons
+function resetDeleteMode() {
+  document.querySelectorAll('.delete-col').forEach((el) => (el.style.display = 'none'));
+  const btn = document.getElementById('toggleDeleteBtn');
+  if (!btn) return;
+  btn.style.background  = ''; // reset button style
+  btn.style.borderColor = '';
+  btn.style.color       = '';
+}
+
+// Toggle delete button visibility
 function initToggleDelete() {
   const btn = document.getElementById('toggleDeleteBtn');
   if (!btn) return;
@@ -458,15 +432,12 @@ function initToggleDelete() {
 
   btn.addEventListener('click', () => {
     deleteMode = !deleteMode;
-
     document.querySelectorAll('.delete-col').forEach((el) => {
-      el.style.display = deleteMode ? 'flex' : 'none';
+      el.style.display = deleteMode ? 'flex' : 'none'; // show or hide
     });
-
-    // Visual feedback — highlight the button when delete mode is active.
-    btn.style.background    = deleteMode ? '#fcebeb' : '';
-    btn.style.borderColor   = deleteMode ? '#f09595' : '';
-    btn.style.color         = deleteMode ? '#a32d2d' : '';
+    btn.style.background  = deleteMode ? '#fcebeb' : ''; // red tint when active
+    btn.style.borderColor = deleteMode ? '#f09595' : '';
+    btn.style.color       = deleteMode ? '#a32d2d' : '';
   });
 }
 
@@ -475,15 +446,11 @@ function initToggleDelete() {
 // ADMIN — LOG TABLE
 // ==========================================
 
-/**
- * Formats a login timestamp for display in the log table.
- * @param {string} dateStr - ISO date string or MySQL datetime string.
- * @returns {string} Formatted date and time string.
- */
+// Format to DD/MM/YYYY HH:MM:SS
 function formatLogTimestamp(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;   // Fallback: show raw string
+  if (isNaN(d.getTime())) return dateStr; // return raw if invalid
   const day   = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year  = d.getFullYear();
@@ -493,31 +460,27 @@ function formatLogTimestamp(dateStr) {
   return `${day}/${month}/${year} ${hours}:${mins}:${secs}`;
 }
 
-/**
- * Creates a single log table row matching the 4-column CSS grid.
- */
+// Build single log table row
 function renderLogRow(log) {
   const row = document.createElement('div');
   row.className = 'table-row log-row';
 
-  // Determine action text based on role — successful logins have a role, failed ones don't.
-  const action = log.myRole ? 'Login Success' : 'Login Failed';
-  const actionClass = log.myRole ? 'log-success' : 'log-failed';
+  // myRole truthy = success
+  const action      = log.myRole ? 'Login Success' : 'Login Failed';
+  const actionClass = log.myRole ? 'log-success'   : 'log-failed';
 
   row.innerHTML = `
     <span class="log-id">${log.LoginID}</span>
     <span class="log-action ${actionClass}">${action}</span>
     <span class="log-username">${log.Username}</span>
-    <span class="log-password">${log.myPassword || '-'}</span>
+    <span class="log-password">${log.myPassword}</span>
     <span class="log-timestamp">${formatLogTimestamp(log.LoginLog)}</span>
   `;
 
   return row;
 }
 
-/**
- * Fetches admin login logs from the API and renders them into the log table.
- */
+// Fetch and render log entries
 async function initLogTable() {
   const table = document.getElementById('logTable');
   if (!table) return;
@@ -526,7 +489,7 @@ async function initLogTable() {
     const res = await api.getAdminLogs();
     table.innerHTML = '';
 
-    if (!res.data || res.data.length === 0) {
+    if (!res.data?.length) {
       table.innerHTML = `
         <div class="table-empty">
           <p>No log entries found.</p>
@@ -546,15 +509,17 @@ async function initLogTable() {
 // ADMIN — EDIT PRODUCT
 // ==========================================
 
+// Fill form fields from product data
 function populateEditForm(p) {
   document.getElementById('productId').value   = p.ProductID;
   document.getElementById('productName').value = p.ProductName;
   document.getElementById('price').value       = p.Price;
   document.getElementById('brand').value       = p.Brand;
-  document.getElementById('mfgDate').value     = p.MFGDate?.split('T')[0] ?? '';
+  document.getElementById('mfgDate').value     = p.MFGDate?.split('T')[0] ?? ''; // strip time part
   document.getElementById('expDate').value     = p.EXPDate?.split('T')[0] ?? '';
   document.getElementById('ingredients').value = p.Ingredients?.join(', ') ?? '';
 
+  // Show existing image preview
   if (p.Images?.[0]?.ImageURL) {
     const img = document.getElementById('previewImage');
     img.src           = p.Images[0].ImageURL;
@@ -562,7 +527,8 @@ function populateEditForm(p) {
   }
 }
 
-function buildFormData(includeAdmin = true) {
+// Collect form fields into FormData
+function buildFormData() {
   const formData = new FormData();
   formData.append('ProductName', document.getElementById('productName').value);
   formData.append('Price',       document.getElementById('price').value);
@@ -571,17 +537,16 @@ function buildFormData(includeAdmin = true) {
   formData.append('EXPDate',     document.getElementById('expDate').value);
   formData.append('Ingredients', document.getElementById('ingredients').value);
 
-  if (includeAdmin) {
-    const adminID = localStorage.getItem('adminID');
-    if (adminID) formData.append('AdminID', adminID);
-  }
+  const adminID = localStorage.getItem('adminID'); // attach stored admin ID
+  if (adminID) formData.append('AdminID', adminID);
 
   const file = document.getElementById('imageInput')?.files[0];
-  if (file) formData.append('image', file);
+  if (file) formData.append('image', file); // attach image if chosen
 
   return formData;
 }
 
+// Load product then handle update submit
 async function initEditProduct() {
   const form = document.getElementById('editForm');
   if (!form) return;
@@ -591,7 +556,7 @@ async function initEditProduct() {
 
   try {
     const res = await api.getProduct(id);
-    populateEditForm(res.data);
+    populateEditForm(res.data); // pre-fill form
   } catch (err) {
     console.error(err);
   }
@@ -603,14 +568,14 @@ async function initEditProduct() {
 
     if (!validateDates()) {
       showToast('warning', 'Manufacturing date must be before expiration date.');
-      return;
+      return; // block invalid submit
     }
 
     try {
       const res = await api.updateProduct(id, buildFormData());
       if (!res.error) {
         showToast('success', 'Product updated successfully!');
-        setTimeout(() => { window.location.href = '/product-management'; }, 1500);
+        setTimeout(() => { window.location.href = '/product-management'; }, 1500); // redirect after toast
       }
     } catch (err) {
       showToast('error', 'Failed to update product.');
@@ -624,6 +589,7 @@ async function initEditProduct() {
 // ADMIN — ADD PRODUCT
 // ==========================================
 
+// Validate then POST new product
 async function initAddProduct() {
   const form = document.getElementById('addForm');
   if (!form) return;
@@ -635,14 +601,14 @@ async function initAddProduct() {
 
     if (!validateDates()) {
       showToast('warning', 'Manufacturing date must be before expiration date.');
-      return;
+      return; // block invalid submit
     }
 
     try {
       const res = await api.createProduct(buildFormData());
       if (!res.error) {
         showToast('success', 'Product added successfully!');
-        setTimeout(() => { window.location.href = '/product-management'; }, 1500);
+        setTimeout(() => { window.location.href = '/product-management'; }, 1500); // redirect after toast
       }
     } catch (err) {
       showToast('error', 'Failed to add product.');
@@ -656,6 +622,7 @@ async function initAddProduct() {
 // ADMIN — LOGIN
 // ==========================================
 
+// Submit credentials, store AdminID
 async function initAdminLogin() {
   const form = document.getElementById('admin-login-form');
   if (!form) return;
@@ -667,7 +634,7 @@ async function initAdminLogin() {
 
     try {
       const data = await api.adminLogin({ Username: username, myPassword: password });
-      localStorage.setItem('adminID', data.AdminID);
+      localStorage.setItem('adminID', data.AdminID); // persist for product forms
       showToast('success', 'Login successful! Redirecting...');
       setTimeout(() => { window.location.href = '/product-management'; }, 1500);
     } catch {
@@ -681,6 +648,7 @@ async function initAdminLogin() {
 // SEARCH — INGREDIENTS
 // ==========================================
 
+// Fetch and render ingredient radios
 async function loadIngredients() {
   const checkboxGroup = document.querySelector('.checkbox-group');
   if (!checkboxGroup) return;
@@ -689,14 +657,14 @@ async function loadIngredients() {
     const res = await api.getIngredients();
 
     if (res.data?.length) {
-      checkboxGroup.innerHTML = '';
+      checkboxGroup.innerHTML = ''; // clear placeholder
       res.data.forEach((ingredient) => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="radio" name="ing"> ${ingredient}`;
         checkboxGroup.appendChild(label);
       });
 
-      initSearchValidation();
+      initSearchValidation(); // re-enable search button
     }
   } catch (err) {
     console.error('Error loading ingredients:', err);
@@ -705,9 +673,10 @@ async function loadIngredients() {
 
 
 // ==========================================
-// SEARCH — search OVERLAY
+// SEARCH — OVERLAY
 // ==========================================
 
+// Toggle overlay on search container click
 function initSearchOverlay() {
   const container = document.querySelector('.search-container');
   const overlay   = document.getElementById('search-overlay');
@@ -716,20 +685,22 @@ function initSearchOverlay() {
   if (!container || !overlay) return;
 
   container.addEventListener('click', (e) => {
-    overlay.classList.remove('hidden');
+    overlay.classList.remove('hidden'); // open overlay
     e.stopPropagation();
   });
 
+  // Click outside closes overlay
   document.addEventListener('click', (e) => {
     if (!overlay.contains(e.target) && !container.contains(e.target)) {
       overlay.classList.add('hidden');
     }
   });
 
-  panel?.addEventListener('click', (e) => e.stopPropagation());
+  panel?.addEventListener('click', (e) => e.stopPropagation()); // prevent panel close
   searchBtn?.addEventListener('click', runSearch);
 }
 
+// Expand search box on focus
 function initExpandableSearch() {
   const box   = document.getElementById('expandable-search-box');
   const input = document.getElementById('nav-search-input');
@@ -737,68 +708,55 @@ function initExpandableSearch() {
 
   input.addEventListener('focus', () => box.classList.add('active'));
   document.addEventListener('click', (e) => {
-    if (!box.contains(e.target)) box.classList.remove('active');
+    if (!box.contains(e.target)) box.classList.remove('active'); // collapse on outside click
   });
 }
 
-function isSearchValid() {
-  // If a "no criteria" search is allowed to return all results, 
-  // the search is always valid.
-  return true; 
-}
-
+// Enable search button
 function initSearchValidation() {
   const searchBtn = document.getElementById('search-btn');
   if (!searchBtn) return;
-
-  // Keep the button always active so we can trigger the "Please fill all" error
   searchBtn.disabled = false;
   searchBtn.style.opacity = '1';
   searchBtn.style.cursor = 'pointer';
 }
 
+// Clear all search search inputs
 function clearSearchInputs() {
-  const minPrice = document.getElementById('min-price');
-  const maxPrice = document.getElementById('max-price');
-  const brandInput = document.getElementById('brand-input');
-  
-  if (minPrice) minPrice.value = '';
-  if (maxPrice) maxPrice.value = '';
-  if (brandInput) brandInput.value = '';
-  
-  // Uncheck all ingredient radio buttons
+  const fields = ['min-price', 'max-price', 'brand-input'];
+  fields.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.querySelectorAll("input[name='ing']").forEach((radio) => {
-    radio.checked = false;
+    radio.checked = false; // uncheck all radios
   });
 }
 
+// Build query string and redirect
 async function runSearch() {
   const minPrice    = document.getElementById('min-price')?.value.trim();
   const maxPrice    = document.getElementById('max-price')?.value.trim();
   const brand       = document.getElementById('brand-input')?.value.trim();
-  const selectedIngInput = [...document.querySelectorAll("input[name='ing']")].find(r => r.checked);
-  const selectedIng = selectedIngInput ? selectedIngInput.parentElement.innerText.trim() : '';
+  const selectedIng = [...document.querySelectorAll("input[name='ing']")]
+    .find((r) => r.checked)
+    ?.parentElement.innerText.trim() ?? '';
 
-  const criteria = [minPrice, maxPrice, brand, selectedIng];
-  const filledFields = criteria.filter(Boolean).length;
-  const totalFields  = criteria.length; // 4
+  const criteria    = [minPrice, maxPrice, brand, selectedIng];
+  const filledCount = criteria.filter(Boolean).length;
 
-  if (filledFields === 0) {
-    window.location.href = '/product';
+  if (filledCount === 0) {
+    window.location.href = '/product'; // no searchs, show all
     return;
   }
 
-  if (filledFields > 0 && filledFields < totalFields) {
-    showToast('warning', `Please fill all ${totalFields-1} criteria, or leave all blank to show all products.`);
+  // Require all or none
+  if (filledCount < criteria.length) {
+    showToast('warning', `Please fill all ${criteria.length - 1} criteria, or leave all blank to show all products.`);
     return;
   }
 
-  const params = new URLSearchParams();
-  params.append('minPrice',   minPrice);
-  params.append('maxPrice',   maxPrice);
-  params.append('brand',      brand);
-  params.append('ingredient', selectedIng);
-
+  const params = new URLSearchParams({ minPrice, maxPrice, brand, ingredient: selectedIng });
   window.location.href = `/product?${params.toString()}`;
 }
 
@@ -807,6 +765,7 @@ async function runSearch() {
 // SEARCH — NAME SEARCH (header bar)
 // ==========================================
 
+// Search by name or redirect to /product
 function initNameSearch() {
   const searchInput = document.querySelector('.search-input');
   const searchIcon  = document.querySelector('.icon-search');
@@ -814,11 +773,12 @@ function initNameSearch() {
 
   const runNameSearch = async () => {
     const name = searchInput.value.trim();
-    if (!name) return;
+    if (!name) return; // ignore empty input
 
     const grid = document.getElementById('product-grid');
 
     if (!grid) {
+      // Not on product page — redirect instead
       window.location.href = `/product?name=${encodeURIComponent(name)}`;
       searchInput.value = '';
       return;
@@ -837,8 +797,8 @@ function initNameSearch() {
         return;
       }
 
-      renderProductGrid(grid, res.data);
-      document.getElementById('search-overlay')?.classList.add('hidden');
+      renderProductGrid(grid, res.data); // update grid in-place
+      document.getElementById('search-overlay')?.classList.add('hidden'); // close overlay
     } catch (err) {
       showToast('error', 'Search failed. Please try again.');
       console.error(err);
@@ -846,12 +806,8 @@ function initNameSearch() {
     }
   };
 
-  if (searchIcon) {
-    searchIcon.style.cursor = 'pointer';
-    searchIcon.addEventListener('click', runNameSearch);
-  }
-
-  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runNameSearch(); });
+  searchIcon?.addEventListener('click', runNameSearch);
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runNameSearch(); }); // Enter triggers search
 }
 
 
@@ -861,13 +817,14 @@ function initNameSearch() {
 
 let mapInstance = null;
 
+// Show marker at given coordinates
 function showStoreLocation(lat, lon) {
   if (!mapInstance) {
-    mapInstance = new longdo.Map({ placeholder: document.getElementById('map') });
+    mapInstance = new longdo.Map({ placeholder: document.getElementById('map') }); // init once
   }
 
   mapInstance.location({ lat, lon }, true);
-  mapInstance.Overlays.clear();
+  mapInstance.Overlays.clear(); // remove old markers
   mapInstance.Overlays.add(
     new longdo.Marker({ lat, lon }, { title: 'GoonShop Store', detail: 'Our store location' })
   );
@@ -879,19 +836,22 @@ function showStoreLocation(lat, lon) {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  initProductGrid();
-  initProductDetail();
-  initNameSearch();
+  // — Storefront —
+  initProductGrid();    // render product catalogue
+  initProductDetail();  // render single product page
+  initNameSearch();     // wire header search bar
 
-  initExpandableSearch();
-  initSearchOverlay();
-  initSearchValidation();
-  loadIngredients();
+  // — Search overlay —
+  initExpandableSearch(); // expand nav search box
+  initSearchOverlay();    // open/close search panel
+  initSearchValidation(); // enable search button
+  loadIngredients();      // populate ingredient radios
 
-  initAdminLogin();
-  initAdminTable();
-  initToggleDelete();
-  initEditProduct();
-  initAddProduct();
-  initLogTable();
+  // — Admin —
+  initAdminLogin();    // handle login form
+  initAdminTable();    // render product rows
+  initToggleDelete();  // toggle delete buttons
+  initEditProduct();   // load and update product
+  initAddProduct();    // handle add product form
+  initLogTable();      // render login logs
 });
