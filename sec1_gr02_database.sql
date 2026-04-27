@@ -9,6 +9,7 @@ SELECT * FROM myOrder;
 SELECT * FROM Payment;
 SELECT * FROM Administrator;
 SELECT * FROM AdminLogin;
+SELECT * FROM ItemIngredients;
 
 CREATE TABLE Customer (
     CustomerID 	CHAR(8)			NOT NULL,
@@ -112,9 +113,9 @@ INSERT INTO Product VALUES
 ('PD789404','French Fries',90.00,'ARO','2024-01-01','2025-01-01','AD789404'),
 ('PD789405','Frozen Pizza',180.00,'ARO','2024-01-01','2025-01-01','AD789405'),
 ('PD789406','Beef',290.00,'CP','2024-01-01','2025-01-01','AD789406'),
-('PD789407','Frozen Scallop',375.00,'Aro','2024-01-01','2025-01-01','AD789407'),
+('PD789407','Chicken Wing',375.00,'Aro','2024-01-01','2025-01-01','AD789407'),
 ('PD789408','Frozen Squid',200.00,'Savepack','2024-01-01','2025-01-01','AD789408'),
-('PD789409','Dumpling',160.00,'CP','2024-01-01','2025-01-01','AD789409'),
+('PD789409','Pork Dumpling',160.00,'CP','2024-01-01','2025-01-01','AD789409'),
 ('PD789410','Frozen Donut shrimp',160.00,'CP','2024-01-01','2025-01-01','AD789410');
 
 
@@ -219,15 +220,15 @@ INSERT INTO ItemIngredients VALUES
 ('Shrimp','PD789403'),
 ('Potato','PD789404'),
 ('Cheese','PD789405'),
-('Chicken','PD789406'),
-('Fish','PD789407'),
+('Beef','PD789406'),
+('Chicken','PD789407'),
 ('Milk','PD789408'),
 ('Flour','PD789409'),
 ('Sausage','PD789410');
 
 CREATE TABLE Image (
     ImageID         CHAR(8)         NOT NULL,
-    myDescription   VARCHAR(255)    ,
+    myDescription   VARCHAR(255)    ,	
     UploadDate      DATETIME        NOT NULL,
     ImageURL        VARCHAR(500)    NOT NULL,
     ProductID       CHAR(8)         NOT NULL,
@@ -247,5 +248,5 @@ INSERT INTO Image VALUES
 ('IM789406','Beef product image','2024-05-22 13:30:00','https://images.mango-prod.siammakro.cloud/product-images/7115333042371-a19fb93d-9692-4eab-bc17-cda5cbc0b5d9.jpeg?eo-img.resize=w%2F1080&eo-img.format=webp', 'PD789406'),
 ('IM789407','Frozen Scallop product image','2024-05-22 13:40:00','https://cdn-app.cp-cmpd.com/images/cpknow/f66da48c437619ac84b5be909096ef46.png', 'PD789407'),
 ('IM789408','Frozen Squid product image','2024-05-23 15:00:00','https://images.mango-prod.siammakro.cloud/product-images/14769843832220-fc002d1f-e44e-4a33-952a-874062fb093c.jpeg?eo-img.resize=w%2F1080&eo-img.format=webp', 'PD789408'),
-('IM789409','Dumpling product image','2024-05-23 15:10:00','https://images.mango-prod.siammakro.cloud/product-images/7115326488771-0aadebab-8209-43c9-90cf-a5d3374fe2ea.jpeg?eo-img.resize=w%2F1080&eo-img.format=webp', 'PD789409'),
+('IM789409','Pork Dumpling product image','2024-05-23 15:10:00','https://images.mango-prod.siammakro.cloud/product-images/7115326488771-0aadebab-8209-43c9-90cf-a5d3374fe2ea.jpeg?eo-img.resize=w%2F1080&eo-img.format=webp', 'PD789409'),
 ('IM789410','Frozen Donut shrimp product image','2024-05-24 16:20:00','https://down-th.img.susercontent.com/file/th-11134207-81ztq-mm2ajjojyqz356.webp', 'PD789410');

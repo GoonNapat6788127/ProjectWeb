@@ -2,7 +2,6 @@ const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 
@@ -17,7 +16,8 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const upload = multer({ dest: 'uploads/' });
+// Use memoryStorage — no files saved to disk
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
 app.use(express.json());
@@ -35,6 +35,20 @@ db.connect((error) => {
     if (error) throw error;
     console.log(`Connected to DB: ${process.env.DB_NAME}`);
 });
+
+// Helper: stream buffer directly to Cloudinary (no disk write)
+function uploadToCloudinary(buffer) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { resource_type: 'auto' },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        stream.end(buffer);
+    });
+}
 
 // ==============================
 // CUSTOMER APIs
@@ -64,8 +78,8 @@ router.post('/customers', (req, res) => {
         if (error) return res.status(500).send({ error: true, message: error.message });
         const nextId = (result[0].lastId || 0) + 1;
         const newID = 'CT' + nextId;
-        db.query("INSERT INTO Customer VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [newID, FName, LName, PhoneNumber, Email, Gender, City, Province, SubDistrict], 
+        db.query("INSERT INTO Customer VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [newID, FName, LName, PhoneNumber, Email, Gender, City, Province, SubDistrict],
             (err) => {
                 if (err) return res.status(500).send({ error: true, message: err.message });
                 res.send({ error: false, CustomerID: newID, message: 'Customer created' });
@@ -139,12 +153,12 @@ router.get('/products/:id', (req, res) => {
     db.query(sql, [req.params.id], (error, results) => {
         if (error) return res.status(500).send({ error: true, message: error.message });
         if (results.length === 0) return res.status(404).send({ error: true, message: 'Not found' });
-        
+
         const p = { ...results[0], Images: [], Ingredients: [] };
         results.forEach(row => {
-            if (row.ImageID && !p.Images.find(img => img.ImageID === row.ImageID)) 
+            if (row.ImageID && !p.Images.find(img => img.ImageID === row.ImageID))
                 p.Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
-            if (row.Ingredients && !p.Ingredients.includes(row.Ingredients)) 
+            if (row.Ingredients && !p.Ingredients.includes(row.Ingredients))
                 p.Ingredients.push(row.Ingredients);
         });
         res.send({ error: false, data: p });
@@ -160,18 +174,22 @@ router.post('/products', upload.single('image'), async (req, res) => {
     db.query(getLastIdSQL, async (err, result) => {
         if (err) return res.status(500).send({ error: true, message: err.message });
         const newProductID = 'PD' + ((result[0].lastId || 789400) + 1);
-        
+
         let imageUrl = null;
         if (req.file) {
-            const up = await cloudinary.uploader.upload(req.file.path);
-            imageUrl = up.secure_url;
+            try {
+                const up = await uploadToCloudinary(req.file.buffer);
+                imageUrl = up.secure_url;
+            } catch (uploadErr) {
+                return res.status(500).send({ error: true, message: 'Cloudinary upload failed: ' + uploadErr.message });
+            }
         }
 
-        db.query("INSERT INTO Product VALUES (?, ?, ?, ?, ?, ?, ?)", 
-            [newProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID], 
+        db.query("INSERT INTO Product VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [newProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID],
             (error) => {
                 if (error) return res.status(500).send({ error: true, message: error.message });
-                
+
                 if (ingredientsArray.length > 0) {
                     const values = ingredientsArray.map(i => [i, newProductID]);
                     db.query("INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?", [values]);
@@ -182,6 +200,7 @@ router.post('/products', upload.single('image'), async (req, res) => {
                     db.query("INSERT INTO Image (ImageID, myDescription, UploadDate, ImageURL, ProductID) VALUES (?, ?, NOW(), ?, ?)",
                         [imgID, 'Product image', imageUrl, newProductID]);
                 }
+
                 res.send({ error: false, message: 'Product created', ProductID: newProductID });
             }
         );
@@ -189,20 +208,35 @@ router.post('/products', upload.single('image'), async (req, res) => {
 });
 
 // UPDATE PRODUCT
-router.put('/products/:id', upload.single('image'), (req, res) => {
+router.put('/products/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
     const { ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients } = req.body;
 
     db.query("UPDATE Product SET ProductName=?, Price=?, Brand=?, MFGDate=?, EXPDate=?, AdminID=? WHERE ProductID=?",
-        [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, id], (err) => {
+        [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, id], async (err) => {
             if (err) return res.status(500).send({ error: true, message: err.message });
-            
+
             if (Ingredients) {
                 const arr = Ingredients.split(',').map(i => i.trim()).filter(i => i);
                 db.query("DELETE FROM ItemIngredients WHERE ProductID = ?", [id], () => {
                     if (arr.length > 0) db.query("INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?", [arr.map(i => [i, id])]);
                 });
             }
+
+            if (req.file) {
+                try {
+                    const up = await uploadToCloudinary(req.file.buffer);
+                    const imageUrl = up.secure_url;
+                    const imgID = 'IM' + (Date.now() % 1000000);
+                    db.query("DELETE FROM Image WHERE ProductID = ?", [id], () => {
+                        db.query("INSERT INTO Image (ImageID, myDescription, UploadDate, ImageURL, ProductID) VALUES (?, ?, NOW(), ?, ?)",
+                            [imgID, 'Product image', imageUrl, id]);
+                    });
+                } catch (uploadErr) {
+                    return res.status(500).send({ error: true, message: 'Cloudinary upload failed: ' + uploadErr.message });
+                }
+            }
+
             res.send({ error: false, message: 'Updated' });
         }
     );
@@ -228,13 +262,38 @@ router.delete('/products/:id', (req, res) => {
 // ==============================
 router.post('/admin/login', (req, res) => {
     const { Username, myPassword } = req.body;
-    db.query("SELECT * FROM Administrator WHERE Username = ? AND myPassword = ?", [Username, myPassword], (err, results) => {
+    if (!Username || !myPassword) return res.status(400).send({ error: true, message: 'Missing username or password' });
+
+    // Fetch by username only, then compare password in JS for strict case-sensitivity
+    // (MySQL string comparison is case-insensitive by default)
+    db.query("SELECT * FROM Administrator WHERE BINARY Username = ?", [Username], (err, results) => {
         if (err) return res.status(500).send({ error: true, message: err.message });
-        if (results.length > 0) {
-            res.send({ error: false, message: 'Login success', AdminID: results[0].AdminID });
-        } else {
-            res.status(401).send({ error: true, message: 'Invalid credentials' });
+
+        if (results.length === 0) {
+            return res.status(401).send({ error: true, message: 'Invalid credentials' });
         }
+
+        const admin = results[0];
+
+        // Strict case-sensitive password check in JavaScript
+        if (admin.myPassword !== myPassword) {
+            return res.status(401).send({ error: true, message: 'Invalid credentials' });
+        }
+
+        res.send({ error: false, message: 'Login success', AdminID: admin.AdminID });
+    });
+});
+
+router.get('/ingredients', (req, res) => {
+    const sql = `
+        SELECT DISTINCT Ingredients
+        FROM ItemIngredients
+        ORDER BY Ingredients ASC
+    `;
+    db.query(sql, (error, results) => {
+        if (error) return res.status(500).send({ error: true, message: error.message });
+        const ingredients = results.map(row => row.Ingredients);
+        res.send({ error: false, data: ingredients });
     });
 });
 

@@ -40,13 +40,26 @@ const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     }).then(handleResponse),
+
+  getIngredients: () =>
+    fetch(`${BASE_URL}/ingredients`).then(handleResponse),
 };
 
 
 // ==========================================
 // HELPERS
 // ==========================================
-const formatDate = (date) => (date ? new Date(date).toLocaleDateString() : '-');
+// ==========================================
+// HELPERS
+// ==========================================
+const formatDate = (date) => {
+  if (!date) return '-';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2); // Get last 2 digits
+  return `${day}/${month}/${year}`;
+};
 
 const getImageUrl = (images, name, size = '200x200') =>
   images?.[0]?.ImageURL ??
@@ -118,11 +131,16 @@ async function initProductGrid() {
 function renderProductDetail(container, p) {
   let ingredientsHTML = '';
   if (p.Ingredients && p.Ingredients.length > 0) {
+    // Convert string to array if needed
+    const ingredientsList = Array.isArray(p.Ingredients) 
+      ? p.Ingredients 
+      : p.Ingredients.split(',').map(s => s.trim());
+    
     ingredientsHTML = `
       <div style="margin-top:20px;">
         <b style="font-size:1.2rem;">Ingredients:</b>
         <ul style="margin-top:10px;padding-left:20px;line-height:1.6;">
-          ${p.Ingredients.map(ing => `<li>${ing}</li>`).join('')}
+          ${ingredientsList.map(ing => `<li>${ing}</li>`).join('')}
         </ul>
       </div>
     `;
@@ -194,7 +212,78 @@ async function initProductDetail() {
       : "<h2 style='color:red'>Error loading product</h2>";
   }
 }
+// ==========================================
+// DATE VALIDATION
+// ==========================================
+function validateDates() {
+  const mfgInput = document.getElementById('mfgDate');
+  const expInput = document.getElementById('expDate');
+  
+  if (!mfgInput || !expInput) return true;
 
+  const mfgDate = new Date(mfgInput.value);
+  const expDate = new Date(expInput.value);
+
+  // Check if both dates are valid and MFG is not after EXP
+  if (mfgInput.value && expInput.value && mfgDate >= expDate) {
+    return false;
+  }
+
+  return true;
+}
+
+function showDateError(message) {
+  // Remove existing error if any
+  const existingError = document.querySelector('.date-error-message');
+  if (existingError) existingError.remove();
+
+  // Create error message
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'date-error-message';
+  errorDiv.style.cssText = 'color: red; font-size: 14px; margin-top: 5px; font-weight: bold;';
+  errorDiv.textContent = message;
+
+  // Insert after expDate input
+  const expInput = document.getElementById('expDate');
+  if (expInput && expInput.parentElement) {
+    expInput.parentElement.appendChild(errorDiv);
+  }
+}
+
+function clearDateError() {
+  const existingError = document.querySelector('.date-error-message');
+  if (existingError) existingError.remove();
+}
+
+function initDateValidation() {
+  const mfgInput = document.getElementById('mfgDate');
+  const expInput = document.getElementById('expDate');
+  
+  if (!mfgInput || !expInput) return;
+
+  const checkDates = () => {
+    if (!mfgInput.value || !expInput.value) {
+      clearDateError();
+      return;
+    }
+
+    const mfgDate = new Date(mfgInput.value);
+    const expDate = new Date(expInput.value);
+
+    if (mfgDate >= expDate) {
+      showDateError('⚠️ Manufacturing date must be before expiration date');
+      expInput.style.borderColor = 'red';
+      mfgInput.style.borderColor = 'red';
+    } else {
+      clearDateError();
+      expInput.style.borderColor = '';
+      mfgInput.style.borderColor = '';
+    }
+  };
+
+  mfgInput.addEventListener('change', checkDates);
+  expInput.addEventListener('change', checkDates);
+}
 
 // ==========================================
 // ADMIN — PRODUCT TABLE
@@ -327,6 +416,78 @@ async function initEditProduct() {
   });
 }
 
+// ==========================================
+// ADMIN — EDIT PRODUCT
+// ==========================================
+function populateEditForm(p) {
+  document.getElementById('productId').value   = p.ProductID;
+  document.getElementById('productName').value = p.ProductName;
+  document.getElementById('price').value       = p.Price;
+  document.getElementById('brand').value       = p.Brand;
+  document.getElementById('mfgDate').value     = p.MFGDate?.split('T')[0] ?? '';
+  document.getElementById('expDate').value     = p.EXPDate?.split('T')[0] ?? '';
+  document.getElementById('ingredients').value = p.Ingredients?.join(', ') ?? '';
+
+  if (p.Images?.[0]?.ImageURL) {
+    const img = document.getElementById('previewImage');
+    img.src = p.Images[0].ImageURL;
+    img.style.display = 'block';
+  }
+}
+
+function buildFormData(includeAdmin = true) {
+  const formData = new FormData();
+  formData.append('ProductName', document.getElementById('productName').value);
+  formData.append('Price',       document.getElementById('price').value);
+  formData.append('Brand',       document.getElementById('brand').value);
+  formData.append('MFGDate',     document.getElementById('mfgDate').value);
+  formData.append('EXPDate',     document.getElementById('expDate').value);
+  formData.append('Ingredients', document.getElementById('ingredients').value);
+  if (includeAdmin) formData.append('AdminID', 'AD789401');
+
+  const file = document.getElementById('imageInput')?.files[0];
+  if (file) formData.append('image', file);
+
+  return formData;
+}
+
+async function initEditProduct() {
+  const form = document.getElementById('editForm');
+  if (!form) return;
+
+  const id = getProductIdFromURL();
+  if (!id) { console.log('No product ID in URL'); return; }
+
+  try {
+    const res = await api.getProduct(id);
+    populateEditForm(res.data);
+  } catch (err) {
+    console.error(err);
+  }
+
+  // Initialize date validation
+  initDateValidation();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Validate dates before submitting
+    if (!validateDates()) {
+      alert('⚠️ Manufacturing date must be before expiration date!');
+      return;
+    }
+
+    try {
+      const res = await api.updateProduct(id, buildFormData());
+      if (!res.error) {
+        alert('✅ Updated successfully!');
+        window.location.href = '/product-management';
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
 
 // ==========================================
 // ADMIN — ADD PRODUCT
@@ -335,8 +496,18 @@ async function initAddProduct() {
   const form = document.getElementById('addForm');
   if (!form) return;
 
+  // Initialize date validation
+  initDateValidation();
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    // Validate dates before submitting
+    if (!validateDates()) {
+      alert('⚠️ Manufacturing date must be before expiration date!');
+      return;
+    }
+
     try {
       const res = await api.createProduct(buildFormData());
       if (!res.error) {
@@ -348,7 +519,6 @@ async function initAddProduct() {
     }
   });
 }
-
 
 // ==========================================
 // ADMIN — LOGIN
@@ -371,6 +541,37 @@ async function initAdminLogin() {
       alert('Login failed. Please check your credentials.');
     }
   });
+}
+
+
+// ==========================================
+// SEARCH — Load Ingredients Dynamically
+// ==========================================
+async function loadIngredients() {
+  const checkboxGroup = document.querySelector('.checkbox-group');
+  if (!checkboxGroup) return;
+
+  try {
+    const res = await api.getIngredients();
+    
+    if (res.data && res.data.length > 0) {
+      // Clear existing hardcoded ingredients
+      checkboxGroup.innerHTML = '';
+      
+      // Render ingredients dynamically
+      res.data.forEach(ingredient => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="radio" name="ing"> ${ingredient}`;
+        checkboxGroup.appendChild(label);
+      });
+
+      // Re-initialize validation listeners for the new radio buttons
+      initSearchValidation();
+    }
+  } catch (err) {
+    console.error('Error loading ingredients:', err);
+    // Keep hardcoded values as fallback if they exist
+  }
 }
 
 
@@ -423,11 +624,16 @@ function initSearchValidation() {
   const minPrice   = document.getElementById('min-price');
   const maxPrice   = document.getElementById('max-price');
   const brandInput = document.getElementById('brand-input');
-  const ingRadios  = document.querySelectorAll("input[name='ing']");
   if (!searchBtn) return;
 
   const updateBtn = () => {
-    const valid = isSearchValid();
+    const ingRadios = document.querySelectorAll("input[name='ing']"); // Get fresh list
+    const hasIngredient = [...ingRadios].some((r) => r.checked);
+    const minPriceVal = minPrice?.value.trim();
+    const maxPriceVal = maxPrice?.value.trim();
+    const brandVal = brandInput?.value.trim();
+    
+    const valid = minPriceVal !== '' && maxPriceVal !== '' && brandVal !== '' && hasIngredient;
     searchBtn.disabled = !valid;
     searchBtn.style.opacity = valid ? '1' : '0.4';
     searchBtn.style.cursor  = valid ? 'pointer' : 'not-allowed';
@@ -438,7 +644,9 @@ function initSearchValidation() {
   minPrice?.addEventListener('input', updateBtn);
   maxPrice?.addEventListener('input', updateBtn);
   brandInput?.addEventListener('input', updateBtn);
-  ingRadios.forEach((r) => r.addEventListener('change', updateBtn));
+  
+  // Use event delegation for dynamically added radio buttons
+  document.querySelector('.checkbox-group')?.addEventListener('change', updateBtn);
 }
 
 async function runSearch() {
@@ -484,7 +692,7 @@ async function runSearch() {
 // ==========================================
 function initNameSearch() {
   const searchInput = document.querySelector('.search-input');
-  const searchIcon = document.querySelector('.icon-search'); // อ้างอิงจากไอคอนแว่นขยาย
+  const searchIcon = document.querySelector('.icon-search');
   
   if (!searchInput) return;
 
@@ -563,6 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminLogin();
   initExpandableSearch();
   initSearchOverlay();
-  initSearchValidation();
+  loadIngredients();      // Load ingredients dynamically
+  initSearchValidation(); // Initialize after ingredients are loaded
   initNameSearch();
 });

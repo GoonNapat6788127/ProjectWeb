@@ -928,7 +928,7 @@ body {
 
 .table-header span:nth-child(2) {
     text-align: left !important;
-    padding-left: 60px !important;
+    padding-left: 35px !important;
 }
 
 .table-row span:nth-child(2) {
@@ -938,12 +938,20 @@ body {
 
 .table-header span:nth-child(3),
 .table-row span:nth-child(3) {
-    text-align: center !important;
+    text-align: left !important;
+}
+
+.table-row span:nth-child(3) {
+    padding-left: 20px !important;
 }
 
 .table-header span:nth-child(4),
 .table-row span:nth-child(4) {
-    text-align: center !important;
+    text-align: left !important;
+}
+
+.table-row span:nth-child(4) {
+    padding-left: 20px !important;
 }
 
 .status-available {
