@@ -33,17 +33,17 @@ const db = mysql.createConnection({
     user:        process.env.DB_USER,
     password:    process.env.DB_PASSWORD,
     database:    process.env.DB_NAME,
-    dateStrings: true,   // Return dates as 'YYYY-MM-DD' strings instead of Date objects
+    dateStrings: true,
 });
 
-db.connect((error) => {
-    if (error) throw error;
+db.connect((err) => {
+    if (err) throw err;
     console.log(`Connected to DB: ${process.env.DB_NAME}`);
 });
 
 
 // ==========================================
-// CLOUDINARY (image hosting)
+// CLOUDINARY
 // ==========================================
 
 cloudinary.config({
@@ -52,22 +52,15 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Keep uploaded files in memory — no temporary files written to disk.
 const upload = multer({ storage: multer.memoryStorage() });
 
-/**
- * Streams a file buffer directly to Cloudinary and resolves with the upload result.
- * @param {Buffer} buffer - Raw file bytes from multer's memoryStorage.
- * @returns {Promise<object>} Cloudinary upload result (includes secure_url).
- */
+
+// Streams a buffer to Cloudinary and resolves with the upload result. 
 function uploadToCloudinary(buffer) {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             { resource_type: 'auto' },
-            (error, result) => {
-                if (error) return reject(error);
-                resolve(result);
-            }
+            (err, result) => (err ? reject(err) : resolve(result))
         );
         stream.end(buffer);
     });
@@ -78,58 +71,104 @@ function uploadToCloudinary(buffer) {
 // HELPERS
 // ==========================================
 
-/**
- * Collapses a flat list of JOIN rows into a map of products,
- * each with a nested Images array.
- *
- * @param {object[]} rows - Raw rows from a Product LEFT JOIN Image query.
- * @returns {object[]} Deduplicated product objects.
- */
+
+// Collapses a flat list of Product LEFT JOIN Image rows into
+// an array of product objects each with a nested Images array.
+
 function groupProductImages(rows) {
-    const products = {};
-    rows.forEach((row) => {
-        if (!products[row.ProductID]) {
-            const { ImageID, ImageURL, ...productFields } = row;
-            products[row.ProductID] = { ...productFields, Images: [] };
+    const map = {};
+    for (const row of rows) {
+        if (!map[row.ProductID]) {
+            const { ImageID, ImageURL, ...fields } = row;
+            map[row.ProductID] = { ...fields, Images: [] };
         }
         if (row.ImageID) {
-            products[row.ProductID].Images.push({
-                ImageID:  row.ImageID,
-                ImageURL: row.ImageURL,
-            });
+            map[row.ProductID].Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
         }
-    });
-    return Object.values(products);
+    }
+    return Object.values(map);
 }
 
-/**
- * Generates the next sequential ID for a given table and prefix.
- * Pattern: <PREFIX><number>, e.g. "PD789401", "LG789401".
- *
- * @param {string} table  - Table name to query.
- * @param {string} column - ID column name.
- * @param {string} prefix - Two-character prefix to strip/prepend.
- * @param {number} [base=789400] - Fallback starting number when the table is empty.
- * @returns {Promise<string>} The next ID string.
- */
+
+// Returns the next sequential ID for a table, e.g. "PD789401".
+// @param {string} table
+// @param {string} column
+// @param {string} prefix  Two-character prefix, e.g. "PD", "LG".
+// @param {number} [base=789400]
+// @returns {Promise<string>}
+
 function generateNextId(table, column, prefix, base = 789400) {
     return new Promise((resolve, reject) => {
-        const sql = `SELECT MAX(CAST(SUBSTRING(${column}, 3) AS UNSIGNED)) AS lastId FROM ${table}`;
-        db.query(sql, (err, result) => {
-            if (err) return reject(err);
-            resolve(prefix + ((result[0].lastId || base) + 1));
-        });
+        db.query(
+            `SELECT MAX(CAST(SUBSTRING(${column}, 3) AS UNSIGNED)) AS lastId FROM ${table}`,
+            (err, rows) => (err ? reject(err) : resolve(prefix + ((rows[0].lastId || base) + 1)))
+        );
     });
 }
 
-/**
- * Parses a comma-separated ingredients string into a trimmed, non-empty array.
- * @param {string} [raw] - e.g. " Sugar, Salt, Milk "
- * @returns {string[]}
- */
+
+// Parses a comma-separated string into a trimmed, non-empty array.
+// @param {string} [raw]
+// @returns {string[]}
+
 function parseIngredients(raw) {
     if (!raw) return [];
     return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+
+// Generates a short image ID based on the current timestamp.
+// @returns {string}
+
+function generateImageId() {
+    return 'IM' + (Date.now() % 1000000);
+}
+
+
+// Inserts a Cloudinary image record for a given product.
+// @param {string} imageUrl
+// @param {string} productId
+
+async function saveImage(imageUrl, productId) {
+    await db.promise().query(
+        'INSERT INTO Image (ImageID, myDescription, UploadDate, ImageURL, ProductID) VALUES (?, ?, NOW(), ?, ?)',
+        [generateImageId(), 'Product image', imageUrl, productId]
+    );
+}
+
+
+// Replaces a product's image: deletes the old record and inserts the new one.
+// @param {Buffer} buffer  Raw file bytes from multer.
+// @param {string} productId
+
+async function replaceImage(buffer, productId) {
+    const { secure_url } = await uploadToCloudinary(buffer);
+    await db.promise().query('DELETE FROM Image WHERE ProductID = ?', [productId]);
+    await saveImage(secure_url, productId);
+}
+
+
+// Replaces all ingredient rows for a product.
+// @param {string} raw   Comma-separated ingredients string.
+// @param {string} productId
+
+async function replaceIngredients(raw, productId) {
+    const arr = parseIngredients(raw);
+    await db.promise().query('DELETE FROM ItemIngredients WHERE ProductID = ?', [productId]);
+    if (arr.length > 0) {
+        await db.promise().query(
+            'INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?',
+            [arr.map((ing) => [ing, productId])]
+        );
+    }
+}
+
+// Wraps a callback-style db.query in a standard Express error response.
+function queryOrError(res, sql, params, onSuccess) {
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).send({ error: true, message: err.message });
+        onSuccess(results);
+    });
 }
 
 
@@ -137,55 +176,85 @@ function parseIngredients(raw) {
 // PRODUCT ROUTES
 // ==========================================
 
-/**
- * GET /products
- * Returns all products with their associated images.
- */
+// GET      /products
+// GET      /products/search
+// GET      /products/:id
+// POST     /products
+// PUT      /products/:id
+// DELETE   /products/:id
+
+// Testing Retrieve all products (Normal case)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/products
+// body: none
+
+// Testing Retrieve all products (Database table missing)
+// status: 500 Internal Server Error
+// method: get
+// URL: http://localhost:3030/products
+// body: none
+
+// GET /products — all products with images.
 router.get('/products', (req, res) => {
     const sql = `
         SELECT p.*, i.ImageID, i.ImageURL
         FROM Product p
         LEFT JOIN Image i ON p.ProductID = i.ProductID
     `;
-    db.query(sql, (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        res.send({ error: false, data: groupProductImages(results) });
+    queryOrError(res, sql, [], (rows) => {
+        res.send({ error: false, data: groupProductImages(rows) });
     });
 });
 
-/**
- * GET /products/search
- * Searches products by any combination of: name, price range, brand, ingredient.
- * Query params: name, minPrice, maxPrice, brand, ingredient
- */
+// Testing Retrieve a product (Search by name)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/products/search?name=chicken wing
+// body: none
+
+// Testing Retrieve a product (Criteria search)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/products/search?minPrice=100&maxPrice=500&brand=CP&ingredient=Pork
+// body: none
+
+// GET /products/search — filter by name, price range, brand, ingredient.
 router.get('/products/search', (req, res) => {
     const { name, minPrice, maxPrice, brand, ingredient } = req.query;
 
-    // Build the WHERE clause dynamically based on which searchs were supplied.
     let sql = `
         SELECT p.*, i.ImageID, i.ImageURL
         FROM Product p
-        LEFT JOIN Image i   ON p.ProductID = i.ProductID
+        LEFT JOIN Image i            ON p.ProductID = i.ProductID
         LEFT JOIN ItemIngredients ing ON p.ProductID = ing.ProductID
         WHERE 1=1
     `;
     const params = [];
 
-    if (name)                    { sql += ' AND p.ProductName LIKE ?';              params.push(`%${name}%`); }
-    if (minPrice && maxPrice)    { sql += ' AND p.Price BETWEEN ? AND ?';           params.push(minPrice, maxPrice); }
-    if (brand)                   { sql += ' AND LOWER(p.Brand) = LOWER(?)';         params.push(brand); }
-    if (ingredient)              { sql += ' AND ing.Ingredients LIKE ?';            params.push(`%${ingredient}%`); }
+    if (name)                 { sql += ' AND p.ProductName LIKE ?';    params.push(`%${name}%`); }
+    if (minPrice && maxPrice) { sql += ' AND p.Price BETWEEN ? AND ?'; params.push(minPrice, maxPrice); }
+    if (brand)                { sql += ' AND LOWER(p.Brand) = LOWER(?)'; params.push(brand); }
+    if (ingredient)           { sql += ' AND ing.Ingredients LIKE ?';  params.push(`%${ingredient}%`); }
 
-    db.query(sql, params, (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        res.send({ error: false, data: groupProductImages(results) });
+    queryOrError(res, sql, params, (rows) => {
+        res.send({ error: false, data: groupProductImages(rows) });
     });
 });
 
-/**
- * GET /products/:id
- * Returns a single product with its images and ingredients.
- */
+// Testing Retrieve a product by ID (Normal case)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/products/PD789410
+// body: none
+
+// Testing Retrieve a product by ID (Invalid ID)
+// status: 404 Not Found
+// method: get
+// URL: http://localhost:3030/products/XX000000
+// body: none
+
+// GET /products/:id — single product with images and ingredients.
 router.get('/products/:id', (req, res) => {
     const sql = `
         SELECT p.*, i.ImageID, i.ImageURL, ing.Ingredients
@@ -194,70 +263,69 @@ router.get('/products/:id', (req, res) => {
         LEFT JOIN ItemIngredients ing ON p.ProductID = ing.ProductID
         WHERE p.ProductID = ?
     `;
-    db.query(sql, [req.params.id], (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        if (results.length === 0) return res.status(404).send({ error: true, message: 'Not found' });
+    queryOrError(res, sql, [req.params.id], (rows) => {
+        if (rows.length === 0) return res.status(404).send({ error: true, message: 'Not found' });
 
-        // Build a single product object, deduplicating images and ingredients.
-        const { ImageID, ImageURL, ...productFields } = results[0];
-        const product = { ...productFields, Images: [], Ingredients: [] };
+        const { ImageID, ImageURL, ...fields } = rows[0];
+        const product = { ...fields, Images: [], Ingredients: [] };
 
-        results.forEach((row) => {
+        for (const row of rows) {
             if (row.ImageID && !product.Images.find((img) => img.ImageID === row.ImageID)) {
                 product.Images.push({ ImageID: row.ImageID, ImageURL: row.ImageURL });
             }
             if (row.Ingredients && !product.Ingredients.includes(row.Ingredients)) {
                 product.Ingredients.push(row.Ingredients);
             }
-        });
+        }
 
         res.send({ error: false, data: product });
     });
 });
 
-/**
- * POST /products
- * Creates a new product, optionally uploading an image to Cloudinary.
- * Body (multipart/form-data): ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients
- * File field: image
- */
-router.post('/products', upload.single('image'), async (req, res) => {
+// Testing Insert a product (Normal case)
+// status: 200 OK
+// method: post
+// URL: http://localhost:3030/products
+// body: form-data
+// (Key) : (Value)
+// ProductName : Frozen Burger
+// Price : 350
+// Brand : Burger Queen
+// MFGDate : 2026-01-01
+// EXPDate : 2027-01-01
+// AdminID : AD789406
+// Ingredients : Chicken, Bun, Sauce
+// Image (File) : (upload image file)
+
+// Testing Insert a product (Missing field)
+// status: 500 Internal Server Error
+// method: post
+// URL: http://localhost:3030/products
+// body: form-data
+// (Key) : (Value)
+// ProductName : Frozen Lamb
+// Price : 100
+// Brand : Lamb Queen
+// AdminID : AD789407
+// Image (File) : (upload image file)
+
+// POST /products — create a product with optional image upload.
+router.post('/products', upload.single('Image'), async (req, res) => {
     const { ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients } = req.body;
-    const ingredientsArray = parseIngredients(Ingredients);
 
     try {
-        // Generate a new sequential product ID.
         const newProductID = await generateNextId('Product', 'ProductID', 'PD');
 
-        // Upload image to Cloudinary if one was attached.
-        let imageUrl = null;
-        if (req.file) {
-            const result = await uploadToCloudinary(req.file.buffer);
-            imageUrl = result.secure_url;
-        }
-
-        // Insert the core product record.
         await db.promise().query(
             'INSERT INTO Product VALUES (?, ?, ?, ?, ?, ?, ?)',
             [newProductID, ProductName, Price, Brand, MFGDate, EXPDate, AdminID]
         );
 
-        // Insert ingredients (if any) as separate rows in ItemIngredients.
-        if (ingredientsArray.length > 0) {
-            const values = ingredientsArray.map((ing) => [ing, newProductID]);
-            await db.promise().query(
-                'INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?',
-                [values]
-            );
-        }
+        if (Ingredients) await replaceIngredients(Ingredients, newProductID);
 
-        // Insert the image record (if an image was uploaded).
-        if (imageUrl) {
-            const imgID = 'IM' + (Date.now() % 1000000);
-            await db.promise().query(
-                'INSERT INTO Image (ImageID, myDescription, UploadDate, ImageURL, ProductID) VALUES (?, ?, NOW(), ?, ?)',
-                [imgID, 'Product image', imageUrl, newProductID]
-            );
+        if (req.file) {
+            const { secure_url } = await uploadToCloudinary(req.file.buffer);
+            await saveImage(secure_url, newProductID);
         }
 
         res.send({ error: false, message: 'Product created', ProductID: newProductID });
@@ -267,47 +335,45 @@ router.post('/products', upload.single('image'), async (req, res) => {
     }
 });
 
-/**
- * PUT /products/:id
- * Updates an existing product's fields, ingredients, and optionally its image.
- * Body (multipart/form-data): ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients
- * File field: image (optional — only replaces if a new file is attached)
- */
-router.put('/products/:id', upload.single('image'), async (req, res) => {
+// Testing Update a product (Normal case)
+// status: 200 OK
+// method: put
+// URL: http://localhost:3030/products/PD789401
+// body: form-data
+// (Key) : (Value)
+// ProductName : Chicken Bites
+// Price : 789
+// Brand : Aro
+// MFGDate : 2024-01-01
+// EXPDate : 2025-01-01
+// AdminID : AD789403
+// Ingredients : Chicken, Flour, Oil, Salt
+// Image (File) : (upload image file)
+
+// Testing Update a product (Missing field)
+// status: 500 Internal Server Error
+// method: put
+// URL: http://localhost:3030/products/PD789401
+// body: form-data
+// (Key) : (Value)
+// ProductName : Chicken Bites
+// Price : 789
+// Ingredients : Chicken, Flour, Oil, Salt
+// Image (File) : (upload image file)
+
+// PUT /products/:id — update product fields, ingredients, and optionally the image.
+router.put('/products/:id', upload.single('Image'), async (req, res) => {
     const { id } = req.params;
     const { ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients } = req.body;
 
     try {
-        // Update core product fields.
         await db.promise().query(
             'UPDATE Product SET ProductName=?, Price=?, Brand=?, MFGDate=?, EXPDate=?, AdminID=? WHERE ProductID=?',
             [ProductName, Price, Brand, MFGDate, EXPDate, AdminID, id]
         );
 
-        // Replace all ingredients: delete existing rows, then re-insert.
-        if (Ingredients) {
-            const arr = parseIngredients(Ingredients);
-            await db.promise().query('DELETE FROM ItemIngredients WHERE ProductID = ?', [id]);
-            if (arr.length > 0) {
-                await db.promise().query(
-                    'INSERT INTO ItemIngredients (Ingredients, ProductID) VALUES ?',
-                    [arr.map((ing) => [ing, id])]
-                );
-            }
-        }
-
-        // Replace the product image only when a new file is uploaded.
-        if (req.file) {
-            const result  = await uploadToCloudinary(req.file.buffer);
-            const imageUrl = result.secure_url;
-            const imgID    = 'IM' + (Date.now() % 1000000);
-
-            await db.promise().query('DELETE FROM Image WHERE ProductID = ?', [id]);
-            await db.promise().query(
-                'INSERT INTO Image (ImageID, myDescription, UploadDate, ImageURL, ProductID) VALUES (?, ?, NOW(), ?, ?)',
-                [imgID, 'Product image', imageUrl, id]
-            );
-        }
+        if (Ingredients) await replaceIngredients(Ingredients, id);
+        if (req.file)    await replaceImage(req.file.buffer, id);
 
         res.send({ error: false, message: 'Updated' });
     } catch (err) {
@@ -316,20 +382,26 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
     }
 });
 
-/**
- * DELETE /products/:id
- * Removes a product and all its related records (images, ingredients, orders).
- * Deletions are performed in dependency order to satisfy foreign-key constraints.
- */
+// Testing Delete a product (Normal case)
+// status: 200 OK
+// method: delete
+// URL: http://localhost:3030/products/PD789410
+// body: none
+
+// Testing Delete all products (Database table missing)
+// status: 500 Internal Server Error
+// method: delete
+// URL: http://localhost:3030/products/PD789410
+// body: none
+
+// DELETE /products/:id — remove product and all related records.
 router.delete('/products/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        await db.promise().query('DELETE FROM Image WHERE ProductID = ?', [id]);
-        await db.promise().query('DELETE FROM ItemIngredients WHERE ProductID = ?', [id]);
-
-        // แล้วค่อยลบ parent
-        await db.promise().query('DELETE FROM Product WHERE ProductID = ?', [id]);
+        await db.promise().query('DELETE FROM Image            WHERE ProductID = ?', [id]);
+        await db.promise().query('DELETE FROM ItemIngredients  WHERE ProductID = ?', [id]);
+        await db.promise().query('DELETE FROM Product          WHERE ProductID = ?', [id]);
 
         res.send({ error: false, message: 'Deleted' });
     } catch (err) {
@@ -343,64 +415,79 @@ router.delete('/products/:id', async (req, res) => {
 // INGREDIENT ROUTES
 // ==========================================
 
-/**
- * GET /ingredients
- * Returns a distinct, alphabetically sorted list of all ingredient names.
- */
+// GET      /ingredients
+
+// Testing Retrieve all ingredients (Normal case)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/ingredients
+// body: none
+
+// Testing Retrieve all ingredients (Database table missing)
+// status: 500 Internal Server Error
+// method: get
+// URL: http://localhost:3030/ingredients
+// body: none
+
+// GET /ingredients — distinct ingredient names, alphabetically sorted.
 router.get('/ingredients', (req, res) => {
-    const sql = `
-        SELECT DISTINCT Ingredients
-        FROM ItemIngredients
-        ORDER BY Ingredients ASC
-    `;
-    db.query(sql, (error, results) => {
-        if (error) return res.status(500).send({ error: true, message: error.message });
-        res.send({ error: false, data: results.map((row) => row.Ingredients) });
-    });
+    queryOrError(res,
+        'SELECT DISTINCT Ingredients FROM ItemIngredients ORDER BY Ingredients ASC',
+        [],
+        (rows) => res.send({ error: false, data: rows.map((r) => r.Ingredients) })
+    );
 });
 
 
 // ==========================================
 // ADMIN ROUTES
 // ==========================================
-// ==========================================
-// ADMIN LOG ROUTE
-// ==========================================
 
+// GET      /admin/log
+// POST     /admin/login
+
+// Testing Retrieve all admin information (Normal case)
+// status: 200 OK
+// method: get
+// URL: http://localhost:3030/admin/log
+// body: none
+
+// Testing Retrieve all admin information (Database table missing)
+// status: 500 Internal Server Error
+// method: get
+// URL: http://localhost:3030/admin/log
+// body: none
+
+// GET /admin/log — all login attempts, newest first.
 router.get('/admin/log', (req, res) => {
-    const sql = `
-        SELECT 
-            LoginID,
-            Username,
-            myPassword,
-            LoginLog,
-            myRole,
-            AdminID
-        FROM AdminLogin
-        ORDER BY LoginLog DESC
-    `;
-
-    db.query(sql, (error, results) => {
-        if (error) {
-            return res.status(500).send({
-                error: true,
-                message: error.message
-            });
-        }
-
-        res.send({
-            error: false,
-            data: results
-        });
-    });
+    queryOrError(res,
+        'SELECT LoginID, Username, myPassword, LoginLog, myRole, AdminID FROM AdminLogin ORDER BY LoginLog DESC',
+        [],
+        (rows) => res.send({ error: false, data: rows })
+    );
 });
 
-/**
- * POST /admin/login
- * Authenticates an admin user and records the login attempt in AdminLogin
- * regardless of success or failure (for audit purposes).
- * Body (JSON): { Username, myPassword }
- */
+// Testing Insert all login log (Valid login)
+// status: 200 OK
+// method: post
+// URL: http://localhost:3030/admin/login
+// body: raw JSON
+// {
+//     "Username": "Wudhichart",
+//     "myPassword": "Sawangphol"
+// }
+
+// Testing Insert all login log (Wrong Username / Password)
+// status: 401 Unauthorized
+// method: post
+// URL: http://localhost:3030/admin/login
+// body: raw JSON
+// {
+//     "Username": "NonAdmin",
+//     "myPassword": "One"
+// }
+
+// POST /admin/login — authenticate an admin and record the attempt for auditing.
 router.post('/admin/login', async (req, res) => {
     const { Username, myPassword } = req.body;
 
@@ -409,36 +496,22 @@ router.post('/admin/login', async (req, res) => {
     }
 
     try {
-        // Look up the admin by username (case-sensitive via BINARY).
-        const [results] = await db.promise().query(
-            'SELECT * FROM Administrator WHERE BINARY Username = ?',
-            [Username]
+        const [rows]    = await db.promise().query(
+            'SELECT * FROM Administrator WHERE BINARY Username = ?', [Username]
         );
+        const loginID   = await generateNextId('AdminLogin', 'LoginID', 'LG');
+        const admin     = rows[0];
+        const success   = admin && admin.myPassword === myPassword;
 
-        // Generate a sequential login-attempt ID for audit logging.
-        const loginID = await generateNextId('AdminLogin', 'LoginID', 'LG');
-
-        const admin          = results[0];
-        const credentialsOk  = admin && admin.myPassword === myPassword;
-
-        if (!credentialsOk) {
-            // Log the failed attempt (role and AdminID left NULL).
-            await db.promise().query(
-                `INSERT INTO AdminLogin (LoginID, Username, myPassword, LoginLog, myRole, AdminID)
-                 VALUES (?, ?, ?, NOW(), NULL, NULL)`,
-                [loginID, Username, myPassword]
-            );
-            return res.status(401).send({ error: true, message: 'Invalid credentials' });
-        }
-
-        // Log the successful attempt.
         await db.promise().query(
             `INSERT INTO AdminLogin (LoginID, Username, myPassword, LoginLog, myRole, AdminID)
              VALUES (?, ?, ?, NOW(), ?, ?)`,
-            [loginID, Username, myPassword, 'Admin', admin.AdminID]
+            [loginID, Username, myPassword, success ? 'Admin' : null, success ? admin.AdminID : null]
         );
 
-        return res.send({ error: false, message: 'Login success', AdminID: admin.AdminID });
+        if (!success) return res.status(401).send({ error: true, message: 'Invalid credentials' });
+
+        res.send({ error: false, message: 'Login success', AdminID: admin.AdminID });
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: true, message: err.message });
