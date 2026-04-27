@@ -1,81 +1,42 @@
 // ==========================================
 // CONFIG
 // ==========================================
+
 const BASE_URL = 'http://localhost:3030';
 
 
 // ==========================================
-// TOAST NOTIFICATIONS
+// HELPERS
 // ==========================================
-(function () {
-  const container = document.createElement('div');
-  container.id = 'toast-container';
-  container.style.cssText = 'position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none';
-  document.body.appendChild(container);
 
-  const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+const formatDate = (date) => {
+  if (!date) return '-';
+  const d     = new Date(date);
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
 
-  window.showToast = function (type = 'info', message, duration = 3500) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-      <div class="toast-icon">${icons[type]}</div>
-      <span class="toast-message">${message}</span>
-      <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
-    `;
-    container.appendChild(toast);
-    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
-    setTimeout(() => removeToast(toast), duration);
-  };
+const getImageUrl = (images, name, size = '200x200') =>
+  images?.[0]?.ImageURL ??
+  `https://placehold.co/${size}/FFFFFF/DDDDDD?text=${encodeURIComponent(name)}`;
 
-  window.removeToast = function (toast) {
-    if (!toast?.parentElement) return;
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 280);
-  };
-})();
+const getIdFromURL = () => {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts[parts.length - 1] || null;
+};
 
+const getProductIdFromURL = () => {
+  if (!window.location.pathname.includes('edit-product')) return null;
+  return getIdFromURL();
+};
 
-
-// ==========================================
-// CONFIRM MODAL
-// ==========================================
-function showConfirm(title, message, onConfirm) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,0.4);
-    display:flex;align-items:center;justify-content:center;z-index:10000;
-  `;
-  overlay.innerHTML = `
-    <div style="
-      background:#fff;border-radius:14px;padding:28px 32px;
-      min-width:300px;max-width:400px;width:90%;
-      box-shadow:0 8px 32px rgba(0,0,0,0.18);font-family:sans-serif;
-    ">
-      <p style="font-size:17px;font-weight:600;margin:0 0 8px;color:#111;">${title}</p>
-      <p style="font-size:14px;color:#666;margin:0 0 24px;">${message}</p>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button id="confirm-cancel" style="
-          padding:9px 20px;border-radius:8px;border:1px solid #ddd;
-          background:#fff;color:#444;font-size:14px;cursor:pointer;
-        ">Cancel</button>
-        <button id="confirm-ok" style="
-          padding:9px 20px;border-radius:8px;border:none;
-          background:#ff4d4d;color:#fff;font-size:14px;
-          font-weight:500;cursor:pointer;
-        ">Delete</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();
-  overlay.querySelector('#confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-}
 
 // ==========================================
 // API LAYER
 // ==========================================
+
 const handleResponse = async (res) => {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
@@ -105,9 +66,9 @@ const api = {
 
   adminLogin: (credentials) =>
     fetch(`${BASE_URL}/admin/login`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
+      body:    JSON.stringify(credentials),
     }).then(handleResponse),
 
   getIngredients: () =>
@@ -116,40 +77,140 @@ const api = {
 
 
 // ==========================================
-// HELPERS
+// TOAST NOTIFICATIONS
 // ==========================================
-const formatDate = (date) => {
-  if (!date) return '-';
-  const d = new Date(date);
-  const day   = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year  = String(d.getFullYear()).slice(-2);
-  return `${day}/${month}/${year}`;
-};
 
-const getImageUrl = (images, name, size = '200x200') =>
-  images?.[0]?.ImageURL ??
-  `https://placehold.co/${size}/FFFFFF/DDDDDD?text=${encodeURIComponent(name)}`;
+(function initToasts() {
+  const container = document.createElement('div');
+  container.id = 'toast-container';
+  container.style.cssText =
+    'position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none';
+  document.body.appendChild(container);
 
-const getIdFromURL = () => {
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  return parts[parts.length - 1] || null;
-};
+  const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
 
-function getProductIdFromURL() {
-  if (!window.location.pathname.includes('edit-product')) return null;
-  return getIdFromURL();
+  window.showToast = function (type = 'info', message, duration = 3500) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type]}</div>
+      <span class="toast-message">${message}</span>
+      <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+    setTimeout(() => removeToast(toast), duration);
+  };
+
+  window.removeToast = function (toast) {
+    if (!toast?.parentElement) return;
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 280);
+  };
+})();
+
+
+// ==========================================
+// CONFIRM MODAL
+// ==========================================
+
+function showConfirm(title, message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;z-index:10000;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:#fff;border-radius:14px;padding:28px 32px;
+      min-width:300px;max-width:400px;width:90%;
+      box-shadow:0 8px 32px rgba(0,0,0,0.18);font-family:sans-serif;
+    ">
+      <p style="font-size:17px;font-weight:600;margin:0 0 8px;color:#111;">${title}</p>
+      <p style="font-size:14px;color:#666;margin:0 0 24px;">${message}</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="confirm-cancel" style="
+          padding:9px 20px;border-radius:8px;border:1px solid #ddd;
+          background:#fff;color:#444;font-size:14px;cursor:pointer;
+        ">Cancel</button>
+        <button id="confirm-ok" style="
+          padding:9px 20px;border-radius:8px;border:none;
+          background:#ff4d4d;color:#fff;font-size:14px;
+          font-weight:500;cursor:pointer;
+        ">Delete</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();
+  overlay.querySelector('#confirm-ok').onclick     = () => { overlay.remove(); onConfirm(); };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+
+// ==========================================
+// DATE VALIDATION
+// ==========================================
+
+function validateDates() {
+  const mfgInput = document.getElementById('mfgDate');
+  const expInput = document.getElementById('expDate');
+  if (!mfgInput || !expInput) return true;
+  const mfgDate = new Date(mfgInput.value);
+  const expDate = new Date(expInput.value);
+  if (mfgInput.value && expInput.value && mfgDate >= expDate) return false;
+  return true;
+}
+
+function showDateError(message) {
+  document.querySelector('.date-error-message')?.remove();
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'date-error-message';
+  errorDiv.style.cssText = 'color:red;font-size:14px;margin-top:5px;font-weight:bold;';
+  errorDiv.textContent = message;
+  document.getElementById('expDate')?.parentElement?.appendChild(errorDiv);
+}
+
+function clearDateError() {
+  document.querySelector('.date-error-message')?.remove();
+}
+
+function initDateValidation() {
+  const mfgInput = document.getElementById('mfgDate');
+  const expInput = document.getElementById('expDate');
+  if (!mfgInput || !expInput) return;
+
+  const checkDates = () => {
+    if (!mfgInput.value || !expInput.value) { clearDateError(); return; }
+    const mfgDate = new Date(mfgInput.value);
+    const expDate = new Date(expInput.value);
+    if (mfgDate >= expDate) {
+      showDateError('Manufacturing date must be before expiration date');
+      mfgInput.style.borderColor = 'red';
+      expInput.style.borderColor = 'red';
+    } else {
+      clearDateError();
+      mfgInput.style.borderColor = '';
+      expInput.style.borderColor = '';
+    }
+  };
+
+  mfgInput.addEventListener('change', checkDates);
+  expInput.addEventListener('change', checkDates);
 }
 
 
 // ==========================================
 // UI — PRODUCT GRID
 // ==========================================
+
 function renderProductGrid(grid, products) {
   if (!products?.length) {
     grid.innerHTML = "<p style='grid-column:span 5;text-align:center'>No products found.</p>";
     return;
   }
+
   grid.innerHTML = products.map((p) => `
     <div class="product-card">
       <a href="/detail/${p.ProductID}" style="text-decoration:none;color:inherit;width:100%;display:block">
@@ -169,8 +230,7 @@ async function initProductGrid() {
 
   grid.innerHTML = "<p style='grid-column:span 5;text-align:center;font-size:1.5rem'>Loading products...</p>";
 
-  const params = new URLSearchParams(window.location.search);
-  const name   = params.get('name');
+  const name = new URLSearchParams(window.location.search).get('name');
 
   try {
     const res = name ? await api.searchByName(name) : await api.getProducts();
@@ -193,18 +253,19 @@ async function initProductGrid() {
 // ==========================================
 // UI — PRODUCT DETAIL
 // ==========================================
+
 function renderProductDetail(container, p) {
   let ingredientsHTML = '';
-  if (p.Ingredients && p.Ingredients.length > 0) {
-    const ingredientsList = Array.isArray(p.Ingredients)
+  if (p.Ingredients?.length) {
+    const list = Array.isArray(p.Ingredients)
       ? p.Ingredients
-      : p.Ingredients.split(',').map(s => s.trim());
+      : p.Ingredients.split(',').map((s) => s.trim());
 
     ingredientsHTML = `
       <div style="margin-top:20px;">
         <b style="font-size:1.2rem;">Ingredients:</b>
         <ul style="margin-top:10px;padding-left:20px;line-height:1.6;">
-          ${ingredientsList.map(ing => `<li>${ing}</li>`).join('')}
+          ${list.map((ing) => `<li>${ing}</li>`).join('')}
         </ul>
       </div>
     `;
@@ -244,7 +305,8 @@ function renderProductDetail(container, p) {
         </div>
 
         <br>
-        <button style="width:100%;max-width:300px;padding:15px;background:black;color:white;border:none;border-radius:10px;font-size:1.2rem;font-weight:bold;cursor:pointer;">
+        <button style="width:100%;max-width:300px;padding:15px;background:black;color:white;
+                       border:none;border-radius:10px;font-size:1.2rem;font-weight:bold;cursor:pointer;">
           Add to Cart
         </button>
       </div>
@@ -279,91 +341,42 @@ async function initProductDetail() {
 
 
 // ==========================================
-// DATE VALIDATION
-// ==========================================
-function validateDates() {
-  const mfgInput = document.getElementById('mfgDate');
-  const expInput = document.getElementById('expDate');
-  if (!mfgInput || !expInput) return true;
-
-  const mfgDate = new Date(mfgInput.value);
-  const expDate = new Date(expInput.value);
-
-  if (mfgInput.value && expInput.value && mfgDate >= expDate) return false;
-  return true;
-}
-
-function showDateError(message) {
-  const existingError = document.querySelector('.date-error-message');
-  if (existingError) existingError.remove();
-
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'date-error-message';
-  errorDiv.style.cssText = 'color:red;font-size:14px;margin-top:5px;font-weight:bold;';
-  errorDiv.textContent = message;
-
-  const expInput = document.getElementById('expDate');
-  if (expInput?.parentElement) expInput.parentElement.appendChild(errorDiv);
-}
-
-function clearDateError() {
-  document.querySelector('.date-error-message')?.remove();
-}
-
-function initDateValidation() {
-  const mfgInput = document.getElementById('mfgDate');
-  const expInput = document.getElementById('expDate');
-  if (!mfgInput || !expInput) return;
-
-  const checkDates = () => {
-    if (!mfgInput.value || !expInput.value) { clearDateError(); return; }
-
-    const mfgDate = new Date(mfgInput.value);
-    const expDate = new Date(expInput.value);
-
-    if (mfgDate >= expDate) {
-      showDateError('Manufacturing date must be before expiration date');
-      expInput.style.borderColor = 'red';
-      mfgInput.style.borderColor = 'red';
-    } else {
-      clearDateError();
-      expInput.style.borderColor = '';
-      mfgInput.style.borderColor = '';
-    }
-  };
-
-  mfgInput.addEventListener('change', checkDates);
-  expInput.addEventListener('change', checkDates);
-}
-
-
-// ==========================================
 // ADMIN — PRODUCT TABLE
 // ==========================================
+
+/**
+ * Creates a single admin table row matching the updated 5-column CSS grid.
+ * The delete button sits in its own grid column — no absolute positioning needed.
+ */
 function renderAdminRow(p) {
   const row = document.createElement('div');
   row.className = 'table-row';
-  row.style.cssText = 'position:relative;cursor:pointer';
+  row.style.cursor = 'pointer';
 
+  // Wrap the brand in a .brand-text span so the CSS pill style applies.
+  // The delete button has no inline styles — all appearance comes from CSS.
   row.innerHTML = `
     <span>${p.ProductID}</span>
     <span class="p-name">${p.ProductName}</span>
-    <span>${Number(p.Price).toLocaleString()}</span>
-    <span class="brand-text">${p.Brand}</span>
-    <button class="delete-item-btn delete-col"
-      style="display:none;position:absolute;right:20px;top:50%;transform:translateY(-50%);
-             background:#ff4d4d;color:white;border:none;border-radius:50%;width:24px;height:24px;
-             font-weight:bold;cursor:pointer;line-height:24px;padding:0;text-align:center;font-family:monospace">-</button>
+    <span>฿${Number(p.Price).toLocaleString()}</span>
+    <span><span class="brand-text">${p.Brand}</span></span>
+    <button class="delete-item-btn delete-col" style="display:none">−</button>
   `;
 
-  row.onclick = () => { window.location.href = `/edit-product/${p.ProductID}`; };
+  // Clicking the row navigates to the edit page.
+  row.addEventListener('click', () => {
+    window.location.href = `/edit-product/${p.ProductID}`;
+  });
 
-  row.querySelector('.delete-item-btn').onclick = (e) => {
+  // Clicking the delete button shows a confirm dialog (does not navigate).
+  row.querySelector('.delete-item-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    showConfirm(`Delete "${p.ProductName}"?`, 'This action cannot be undone.', () => {
-      handleDelete(p.ProductID);
-    });
-  };
+    showConfirm(
+      `Delete "${p.ProductName}"?`,
+      'This action cannot be undone.',
+      () => handleDelete(p.ProductID)
+    );
+  });
 
   return row;
 }
@@ -394,14 +407,27 @@ async function handleDelete(id) {
   }
 }
 
+/**
+ * Toggles the delete buttons in the admin table.
+ * Uses "flex" (not "inline-block") to match the CSS grid cell centering.
+ */
 function initToggleDelete() {
   const btn = document.getElementById('toggleDeleteBtn');
   if (!btn) return;
 
+  let deleteMode = false;
+
   btn.addEventListener('click', () => {
+    deleteMode = !deleteMode;
+
     document.querySelectorAll('.delete-col').forEach((el) => {
-      el.style.display = el.style.display === 'inline-block' ? 'none' : 'inline-block';
+      el.style.display = deleteMode ? 'flex' : 'none';
     });
+
+    // Visual feedback — highlight the button when delete mode is active.
+    btn.style.background    = deleteMode ? '#fcebeb' : '';
+    btn.style.borderColor   = deleteMode ? '#f09595' : '';
+    btn.style.color         = deleteMode ? '#a32d2d' : '';
   });
 }
 
@@ -409,6 +435,7 @@ function initToggleDelete() {
 // ==========================================
 // ADMIN — EDIT PRODUCT
 // ==========================================
+
 function populateEditForm(p) {
   document.getElementById('productId').value   = p.ProductID;
   document.getElementById('productName').value = p.ProductName;
@@ -420,7 +447,7 @@ function populateEditForm(p) {
 
   if (p.Images?.[0]?.ImageURL) {
     const img = document.getElementById('previewImage');
-    img.src = p.Images[0].ImageURL;
+    img.src           = p.Images[0].ImageURL;
     img.style.display = 'block';
   }
 }
@@ -486,6 +513,7 @@ async function initEditProduct() {
 // ==========================================
 // ADMIN — ADD PRODUCT
 // ==========================================
+
 async function initAddProduct() {
   const form = document.getElementById('addForm');
   if (!form) return;
@@ -517,6 +545,7 @@ async function initAddProduct() {
 // ==========================================
 // ADMIN — LOGIN
 // ==========================================
+
 async function initAdminLogin() {
   const form = document.getElementById('admin-login-form');
   if (!form) return;
@@ -539,8 +568,9 @@ async function initAdminLogin() {
 
 
 // ==========================================
-// SEARCH — Load Ingredients Dynamically
+// SEARCH — INGREDIENTS
 // ==========================================
+
 async function loadIngredients() {
   const checkboxGroup = document.querySelector('.checkbox-group');
   if (!checkboxGroup) return;
@@ -548,13 +578,14 @@ async function loadIngredients() {
   try {
     const res = await api.getIngredients();
 
-    if (res.data && res.data.length > 0) {
+    if (res.data?.length) {
       checkboxGroup.innerHTML = '';
-      res.data.forEach(ingredient => {
+      res.data.forEach((ingredient) => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="radio" name="ing"> ${ingredient}`;
         checkboxGroup.appendChild(label);
       });
+
       initSearchValidation();
     }
   } catch (err) {
@@ -564,8 +595,9 @@ async function loadIngredients() {
 
 
 // ==========================================
-// SEARCH — Filter Overlay
+// SEARCH — FILTER OVERLAY
 // ==========================================
+
 function initSearchOverlay() {
   const container = document.querySelector('.search-container');
   const overlay   = document.getElementById('search-overlay');
@@ -615,21 +647,13 @@ function initSearchValidation() {
   if (!searchBtn) return;
 
   const updateBtn = () => {
-    const ingRadios     = document.querySelectorAll("input[name='ing']");
-    const hasIngredient = [...ingRadios].some((r) => r.checked);
-    const valid =
-      minPrice?.value.trim() !== '' &&
-      maxPrice?.value.trim() !== '' &&
-      brandInput?.value.trim() !== '' &&
-      hasIngredient;
-
+    const valid = isSearchValid();
     searchBtn.disabled      = !valid;
     searchBtn.style.opacity = valid ? '1' : '0.4';
     searchBtn.style.cursor  = valid ? 'pointer' : 'not-allowed';
   };
 
   updateBtn();
-
   minPrice?.addEventListener('input', updateBtn);
   maxPrice?.addEventListener('input', updateBtn);
   brandInput?.addEventListener('input', updateBtn);
@@ -655,8 +679,7 @@ async function runSearch() {
   if (selected) params.append('ingredient', selected);
 
   try {
-    const res     = await api.searchProducts(params.toString());
-    const overlay = document.getElementById('search-overlay');
+    const res = await api.searchProducts(params.toString());
 
     if (!res.data?.length) {
       grid.innerHTML = `
@@ -667,7 +690,7 @@ async function runSearch() {
     }
 
     renderProductGrid(grid, res.data);
-    overlay?.classList.add('hidden');
+    document.getElementById('search-overlay')?.classList.add('hidden');
   } catch (err) {
     showToast('error', 'Search failed. Please try again.');
     console.error(err);
@@ -676,8 +699,9 @@ async function runSearch() {
 
 
 // ==========================================
-// SEARCH — Name Search (header bar)
+// SEARCH — NAME SEARCH (header bar)
 // ==========================================
+
 function initNameSearch() {
   const searchInput = document.querySelector('.search-input');
   const searchIcon  = document.querySelector('.icon-search');
@@ -699,7 +723,7 @@ function initNameSearch() {
     try {
       const res = await api.searchByName(name);
 
-      if (!res.data || res.data.length === 0) {
+      if (!res.data?.length) {
         grid.innerHTML = `
           <div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px">
             No products found for "${name}"
@@ -716,8 +740,11 @@ function initNameSearch() {
     }
   };
 
-  searchIcon?.addEventListener('click', runNameSearch);
-  if (searchIcon) searchIcon.style.cursor = 'pointer';
+  if (searchIcon) {
+    searchIcon.style.cursor = 'pointer';
+    searchIcon.addEventListener('click', runNameSearch);
+  }
+
   searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runNameSearch(); });
 }
 
@@ -725,12 +752,14 @@ function initNameSearch() {
 // ==========================================
 // MAP
 // ==========================================
+
 let mapInstance = null;
 
 function showStoreLocation(lat, lon) {
   if (!mapInstance) {
     mapInstance = new longdo.Map({ placeholder: document.getElementById('map') });
   }
+
   mapInstance.location({ lat, lon }, true);
   mapInstance.Overlays.clear();
   mapInstance.Overlays.add(
@@ -740,19 +769,22 @@ function showStoreLocation(lat, lon) {
 
 
 // ==========================================
-// INIT — single entry point
+// INIT
 // ==========================================
+
 document.addEventListener('DOMContentLoaded', () => {
   initProductGrid();
   initProductDetail();
+  initNameSearch();
+
+  initExpandableSearch();
+  initSearchOverlay();
+  initSearchValidation();
+  loadIngredients();
+
+  initAdminLogin();
   initAdminTable();
   initToggleDelete();
   initEditProduct();
   initAddProduct();
-  initAdminLogin();
-  initExpandableSearch();
-  initSearchOverlay();
-  loadIngredients();
-  initSearchValidation();
-  initNameSearch();
 });

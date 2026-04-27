@@ -81,43 +81,117 @@
     </nav>
 
     <main class="home-main">
-        <section class="hero-categories">
-            <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80"
-                    alt="Premium Salmon">
-                <h2 class="category-title">Premium</h2>
-            </div>
-            <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80"
-                    alt="Fresh Shrimp">
-                <h2 class="category-title">Fresh</h2>
-            </div>
-            <div class="category-panel">
-                <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80"
-                    alt="Quality Vegetables">
-                <h2 class="category-title">Quality</h2>
-            </div>
-        </section>
 
-        <section class="new-product-section">
-            <h2 class="section-heading">Frozen Food Retails Business Domain</h2>
-            <p>Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products
-                preserved through freezing. This inventory typically
-                spans several categories, including raw meats, poultry, seafood, vegetables, fruits, and increasingly
-                popular processed "ready-to-eat" or "ready-to-cook" meals. By maintaining these items at sub-zero
-                temperatures, the business effectively halts microbial growth,
-                thereby preserving nutritional value, maintaining peak freshness, and significantly extending shelf life
-                compared to fresh counterparts.</p>
-        </section>
+    <section class="hero-categories">
+        <div class="category-panel">
+            <img src="https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=600&q=80" alt="Premium Salmon">
+            <h2 class="category-title">Premium</h2>
+        </div>
+        <div class="category-panel">
+            <img src="https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=600&q=80" alt="Fresh Shrimp">
+            <h2 class="category-title">Fresh</h2>
+        </div>
+        <div class="category-panel">
+            <img src="https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=600&q=80" alt="Quality Vegetables">
+            <h2 class="category-title">Quality</h2>
+        </div>
+    </section>
 
-        <section>
-            <div id="map-section">
-                <h1>Our Store Location</h1>
-                <button onclick="showStoreLocation(13.7932, 100.3242)">Get Store Location</button>
+    <!-- ABOUT SECTION -->
+    <section class="about-section">
+
+        <div class="about-label">
+            <span class="about-rule"></span>
+            <span class="about-tag">About Us</span>
+            <span class="about-rule"></span>
+        </div>
+
+        <h2 class="about-heading">Frozen Food Retails<br>Business Domain</h2>
+
+        <div class="stat-row">
+            <div class="stat-box">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Products</span>
+            </div>
+            <div class="stat-box stat-box--accent">
+                <span class="stat-number">10+</span>
+                <span class="stat-label">Years of Experience</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">99%</span>
+                <span class="stat-label">Customer Satisfaction</span>
+            </div>
+        </div>
+
+        <div class="about-card">
+            <p class="about-text">
+                Frozen Food Retail is a dynamic business sector dedicated to the distribution and sale of food products
+                preserved through freezing. This inventory typically spans several categories, including raw meats,
+                poultry, seafood, vegetables, fruits, and increasingly popular processed "ready-to-eat" or
+                "ready-to-cook" meals. By maintaining these items at sub-zero temperatures, the business effectively
+                halts microbial growth, thereby preserving nutritional value, maintaining peak freshness, and
+                significantly extending shelf life compared to fresh counterparts.
+            </p>
+        </div>
+
+        <div class="feature-chips">
+            <span class="chip">❄ Flash Frozen</span>
+            <span class="chip">✦ Premium Quality</span>
+            <span class="chip">⟳ Year-Round Supply</span>
+            <span class="chip">✔ Food-Safe Certified</span>
+        </div>
+
+    </section>
+
+    <!-- MAP SECTION -->
+    <section class="map-section-wrapper">
+
+        <div class="about-label">
+            <span class="about-rule"></span>
+            <span class="about-tag">Find Us</span>
+            <span class="about-rule"></span>
+        </div>
+
+        <h2 class="about-heading">Our Store Location</h2>
+
+        <div class="map-card">
+
+            <div class="map-info">
+                <div class="map-info-block">
+                    <span class="map-info-icon">📍</span>
+                    <div>
+                        <p class="map-info-title">Address</p>
+                        <p class="map-info-body">Mahidol University 999 <br>Phuttamonthon 4 Road,<br>Salaya, Nakhon Pathom<br>73170 Thailand</p>
+                    </div>
+                </div>
+                <div class="map-info-block">
+                    <span class="map-info-icon">🕐</span>
+                    <div>
+                        <p class="map-info-title">Opening Hours</p>
+                        <p class="map-info-body">Mon – Fri: 08:00 – 18:00<br>Sat – Sun: 09:00 – 16:00</p>
+                    </div>
+                </div>
+                <div class="map-info-block">
+                    <span class="map-info-icon">📞</span>
+                    <div>
+                        <p class="map-info-title">Contact</p>
+                        <p class="map-info-body">+66 (0) 2 849-6000</p>
+                    </div>
+                </div>
+                <button class="map-locate-btn" onclick="showStoreLocation(13.7932, 100.3242)">
+                    Get Store Location
+                </button>
+            </div>
+
+            <div class="map-embed-wrap">
                 <div class="map" id="map"></div>
             </div>
-        </section>
-    </main>
+
+        </div>
+
+    </section>
+
+</main>
 
     <footer>
         <div class="footer-container">
