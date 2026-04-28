@@ -76,7 +76,6 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
 
 ### 1. Home Page (Explore & Discover)
 *   **Hero Sections**: Browse through various categories like Premium, Fresh, and Quality frozen goods.
-*   **About Us**: Learn about our business, years of experience, and customer satisfaction.
 *   **Store Location**: Find us on the map! Click the **"Get Store Location"** button to automatically center the map on our Salaya branch.
 
 ### 2. Searching for Products
