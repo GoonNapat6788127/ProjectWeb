@@ -71,3 +71,28 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
    npm start
    ```
 4. Click the link example -> [http:localhost:xxxx](http://localhost:xxxx)
+
+## 🖱️ Website Navigation Guide
+
+### 1. Home Page (Explore & Discover)
+*   **Hero Sections**: Browse through various categories like Premium, Fresh, and Quality frozen goods.
+*   **About Us**: Learn about our business, years of experience, and customer satisfaction.
+*   **Store Location**: Find us on the map! Click the **"Get Store Location"** button to automatically center the map on our Salaya branch.
+
+### 2. Searching for Products
+*   **Search Bar**: Click the search icon or bar in the header to open the Advanced Search Overlay.
+*   **Filters**: Narrow down your choices by entering a **Price Range**, searching for a specific **Brand**, or selecting an **Ingredient** (Chicken, Beef, Fish, etc.). Click **"Search"** to view results.
+
+### 3. Product Catalog
+*   **Navigation**: Click **"Product"** in the main menu to see the full grid of items.
+*   **Details**: Click on any product card to view its full details, including a high-quality image, price, and specific ingredients.
+
+### 4. Admin Portal (For Staff Only)
+*   **Login**: Click the **User/Admin Icon** in the header to access the Admin Login page.
+*   **Management Dashboard**: Once logged in, admins can:
+    *   **Add Product**: Insert new items with name, price, brand, and image URL.
+    *   **Edit/Delete**: Update existing product information or remove items from the catalog.
+*   **Admin Logs**: Track inventory changes and management history in the logs section.
+
+### 5. Team Information
+*   Visit the **"Team"** page to meet the creators behind GoonShop and learn about our project roles.
