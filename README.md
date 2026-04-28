@@ -3,6 +3,7 @@
 **GoonShop** is a full-stack web application for a Frozen Food Retail business. It serves as a comprehensive catalog and management system for various frozen food products, including raw meats, poultry, seafood, and ready-to-eat meals.
 
 # Link Test Prototype:
+**Extra Score**
 https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
 
 ## 🌟 Features
