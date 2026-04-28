@@ -51,7 +51,6 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
 4. **User Privilege Setup**:
    To allow the Backend to connect to the database, you need to ensure the user exists and has the correct permissions.
    
-   **Option A: Using MySQL Workbench UI**
    * Go to the **Server** menu > **Users and Privileges**.
    * Click **Add Account**.
    * **Login Name**: `Sec1Group2`
@@ -62,20 +61,8 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
    * Click **Add Entry...** > Select **Selected Schema** > Choose `sec1_gr02_database`.
    * Click **Select "ALL PRIVILEGES"** and click **Apply**
 
-   **Option B: Using SQL Script (Faster)**
-   Open a new SQL tab and run these commands:
-   ```sql
-   -- Create the user
-   CREATE USER IF NOT EXISTS 'Sec1Group2'@'localhost' IDENTIFIED BY 'qwerty123456789';
-   
-   -- Grant all privileges on the specific database
-   GRANT ALL PRIVILEGES ON sec1_gr02_database.* TO 'Sec1Group2'@'localhost';
-   
-   -- Apply changes
-   FLUSH PRIVILEGES;
-   ```
-
 5. Refresh your **Schemas** list; you should see `sec1_gr02_database` populated with data.
+   
 1. Open your terminal and navigate to the backend folder:
    ```bash
    cd sec1_gr02_ws_src
