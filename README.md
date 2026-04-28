@@ -91,7 +91,7 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
 *   **Management Dashboard**: Once logged in, admins can:
     *   **Add Product**: Insert new items with name, price, brand, and image URL.
     *   **Edit/Delete**: Update existing product information or remove items from the catalog.
-*   **Admin Logs**: Track inventory changes and management history in the logs section.
+*   **Admin Logs**: Track admin history login in logs section.
 
 ### 5. Team Information
 *   Visit the **"Team"** page to meet the creators behind GoonShop and learn about our project roles.
