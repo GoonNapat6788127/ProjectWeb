@@ -44,6 +44,9 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
    git clone https://github.com/GoonNapat6788127/ProjectWeb.git
    ```
 
+## 1.1 Set up Database in mySqlWorkbench
+
+
 ### 2. Backend Setup
 1. Open your terminal and navigate to the backend folder:
    ```bash
