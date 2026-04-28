@@ -12,10 +12,10 @@
 ## 🚀 Technologies Used
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Backend API**: Node.js, Express.js
-- **Database**: MySQL (Hosted on Aiven Cloud)
+- **Database**: MySQL
 - **Deployment**:
   - Frontend hosted on **GitHub Pages**
-  - Backend API hosted on **Render.com**
+  - Backend API hosted on **map.longdo.com**
 
 ## 👥 Meet the Team (Section 1, Group 02)
 
@@ -55,5 +55,16 @@
    ```
 
 ### 3. Frontend Setup
-1. Open the `/sec1_gr02_fe_src/html/` folder.
-2. Open `homePage.html` in your web browser (using an extension like **Live Server** in VS Code is highly recommended).
+1. Open your terminal and navigate to the fontend folder:
+   ```bash
+   cd sec1_gr02_fe_src
+   ```
+2. Install dependecies:
+   ```bash
+   npm install
+   ```
+3. Run the server:
+   ```bash
+   npm start
+   ```
+4. Click the link example -> [http:localhost:xxxx](http://localhost:xxxx)
