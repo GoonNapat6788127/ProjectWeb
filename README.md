@@ -2,6 +2,9 @@
 
 **GoonShop** is a full-stack web application for a Frozen Food Retail business. It serves as a comprehensive catalog and management system for various frozen food products, including raw meats, poultry, seafood, and ready-to-eat meals.
 
+# Link Test Prototype:
+https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
+
 ## 🌟 Features
 - **Product Catalog**: Browse a wide variety of frozen food products.
 - **Search & Filter**: Find products easily by name, brand, price range, or ingredients.
@@ -37,7 +40,7 @@
 ## 1. Download the Project
 1. Clone the project using the git url:
    ```bash
-   cd git clone https://github.com/GoonNapat6788127/ProjectWeb.git
+   git clone https://github.com/GoonNapat6788127/ProjectWeb.git
    ```
 
 ### 2. Backend Setup
