@@ -1,7 +1,7 @@
 {
-  "name": "qwerty",
+  "name": "sec1_gr02_fe_src",
   "version": "1.0.0",
-  "description": "",
+  "description": "Frontend Part",
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js"
