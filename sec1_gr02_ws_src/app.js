@@ -295,7 +295,7 @@ router.get('/products/:id', (req, res) => {
 // EXPDate : 2027-01-01
 // AdminID : AD789406
 // Ingredients : Chicken, Bun, Sauce
-// Image (File) : (upload image file)
+// image (File) : (upload image file)
 
 // Testing Insert a product (Missing field)
 // status: 500 Internal Server Error
@@ -307,10 +307,10 @@ router.get('/products/:id', (req, res) => {
 // Price : 100
 // Brand : Lamb Queen
 // AdminID : AD789407
-// Image (File) : (upload image file)
+// image (File) : (upload image file)
 
 // POST /products — create a product with optional image upload.
-router.post('/products', upload.single('Image'), async (req, res) => {
+router.post('/products', upload.single('image'), async (req, res) => {
     const { ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients } = req.body;
 
     try {
@@ -348,7 +348,7 @@ router.post('/products', upload.single('Image'), async (req, res) => {
 // EXPDate : 2025-01-01
 // AdminID : AD789403
 // Ingredients : Chicken, Flour, Oil, Salt
-// Image (File) : (upload image file)
+// image (File) : (upload image file)
 
 // Testing Update a product (Missing field)
 // status: 500 Internal Server Error
@@ -359,10 +359,10 @@ router.post('/products', upload.single('Image'), async (req, res) => {
 // ProductName : Chicken Bites
 // Price : 789
 // Ingredients : Chicken, Flour, Oil, Salt
-// Image (File) : (upload image file)
+// image (File) : (upload image file)
 
 // PUT /products/:id — update product fields, ingredients, and optionally the image.
-router.put('/products/:id', upload.single('Image'), async (req, res) => {
+router.put('/products/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
     const { ProductName, Price, Brand, MFGDate, EXPDate, AdminID, Ingredients } = req.body;
 
