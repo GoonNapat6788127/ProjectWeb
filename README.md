@@ -30,11 +30,17 @@
 ## 📦 Project Structure
 - `/sec1_gr02_fe_src`: Frontend source code (HTML, CSS, JS, Images)
 - `/sec1_gr02_ws_src`: Backend API source code (Node.js, Express)
-- `sec1_gr02_database_cloud.sql`: Database schema and initial data
+- `sec1_gr02_database.sql`: Database schema and initial data
 
 ## ⚙️ How to Run Locally
 
-### 1. Backend Setup
+## 1. Download the Project
+1. Clone the project using the git url:
+   ```bash
+   cd git clone https://github.com/GoonNapat6788127/ProjectWeb.git
+   ```
+
+### 2. Backend Setup
 1. Open your terminal and navigate to the backend folder:
    ```bash
    cd sec1_gr02_ws_src
@@ -48,6 +54,6 @@
    npm start
    ```
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 1. Open the `/sec1_gr02_fe_src/html/` folder.
 2. Open `index.html` in your web browser (using an extension like **Live Server** in VS Code is highly recommended).
