@@ -56,4 +56,4 @@
 
 ### 3. Frontend Setup
 1. Open the `/sec1_gr02_fe_src/html/` folder.
-2. Open `index.html` in your web browser (using an extension like **Live Server** in VS Code is highly recommended).
+2. Open `homePage.html` in your web browser (using an extension like **Live Server** in VS Code is highly recommended).
