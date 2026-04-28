@@ -44,10 +44,38 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
    git clone https://github.com/GoonNapat6788127/ProjectWeb.git
    ```
 
-## 1.1 Set up Database in mySqlWorkbench
+### 2. Database Setup (MySQL Workbench)
+1. Open **MySQL Workbench** and connect to your local MySQL server.
+2. Go to **File > Open SQL Script...** and select `sec1_gr02_database.sql` from the project root.
+3. Click the **Lightning Bolt icon** ⚡ (Execute) to create the database and tables.
+4. **User Privilege Setup**:
+   To allow the Backend to connect to the database, you need to ensure the user exists and has the correct permissions.
+   
+   **Option A: Using MySQL Workbench UI**
+   * Go to the **Server** menu > **Users and Privileges**.
+   * Click **Add Account**.
+   * **Login Name**: `Sec1Group2`
+   * **Authentication Type**: Standard
+   * **Password**: `qwerty123456789` (Confirm password again)
+   * Click **Apply**.
+   * Go to the **Schema Privileges** tab.
+   * Click **Add Entry...** > Select **Selected Schema** > Choose `sec1_gr02_database`.
+   * Click **Select "ALL PRIVILEGES"** and click **Apply**
 
+   **Option B: Using SQL Script (Faster)**
+   Open a new SQL tab and run these commands:
+   ```sql
+   -- Create the user
+   CREATE USER IF NOT EXISTS 'Sec1Group2'@'localhost' IDENTIFIED BY 'qwerty123456789';
+   
+   -- Grant all privileges on the specific database
+   GRANT ALL PRIVILEGES ON sec1_gr02_database.* TO 'Sec1Group2'@'localhost';
+   
+   -- Apply changes
+   FLUSH PRIVILEGES;
+   ```
 
-### 2. Backend Setup
+5. Refresh your **Schemas** list; you should see `sec1_gr02_database` populated with data.
 1. Open your terminal and navigate to the backend folder:
    ```bash
    cd sec1_gr02_ws_src
@@ -61,7 +89,7 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
    npm start
    ```
 
-### 3. Frontend Setup
+### 4. Frontend Setup
 1. Open your terminal and navigate to the fontend folder:
    ```bash
    cd sec1_gr02_fe_src
