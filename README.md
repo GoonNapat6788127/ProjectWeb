@@ -79,8 +79,8 @@ https://kritsakornn.github.io/Sec1-Gr02-PJ2-web/
 *   **Store Location**: Find us on the map! Click the **"Get Store Location"** button to automatically center the map on our Salaya branch.
 
 ### 2. Searching for Products
-*   **Search Bar**: Click the search icon or bar in the header to open the Advanced Search Overlay.
-*   **Filters**: Narrow down your choices by entering a **Price Range**, searching for a specific **Brand**, or selecting an **Ingredient** (Chicken, Beef, Fish, etc.). Click **"Search"** to view results.
+*   **Search**: Click the search icon or bar in the header to open the Advanced Search Overlay.
+*   **SearchCategories**: Narrow down your choices by entering a **Price Range**, searching for a specific **Brand**, or selecting an **Ingredient** (Chicken, Beef, Fish, etc.) must select three criterias. Click **"Search"** to view results.
 
 ### 3. Product Catalog
 *   **Navigation**: Click **"Product"** in the main menu to see the full grid of items.
