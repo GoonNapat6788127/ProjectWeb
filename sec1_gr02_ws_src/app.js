@@ -388,7 +388,7 @@ router.put('/products/:id', upload.single('Image'), async (req, res) => {
 // URL: http://localhost:3030/products/PD789410
 // body: none
 
-// Testing Delete all products (Database table missing)
+// Testing Delete a product (Database table missing)
 // status: 500 Internal Server Error
 // method: delete
 // URL: http://localhost:3030/products/PD789410
@@ -446,13 +446,13 @@ router.get('/ingredients', (req, res) => {
 // GET      /admin/log
 // POST     /admin/login
 
-// Testing Retrieve all admin information (Normal case)
+// Testing Retrieve all admin login information (Normal case)
 // status: 200 OK
 // method: get
 // URL: http://localhost:3030/admin/log
 // body: none
 
-// Testing Retrieve all admin information (Database table missing)
+// Testing Retrieve all admin login information (Database table missing)
 // status: 500 Internal Server Error
 // method: get
 // URL: http://localhost:3030/admin/log
